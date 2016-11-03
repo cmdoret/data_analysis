@@ -1,0 +1,39 @@
+---
+title: 'Raw report: Birth weight'
+author: "Cyril Matthey-Doret"
+date: "November 3, 2016"
+output: pdf_document
+---
+
+```{r setup, include=F}
+library(ggplot2);library(gridExtra)
+birth_weight<-read.table("birtweigth_study.txt", sep= " ") # data is separated by spaces (even though the format was originally csv)
+row.names(birth_weight) <- NULL  # Resetting row names
+birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg
+birth_weight$bwt <- birth_weight$bwt/1000  # Converting from grams to kg
+birth_plotter <- function(df){  # Creating a function to plot all variables vs birth weight
+  plotlist <- list()  # Initiating the list that will contain plots
+  count <- 1  # Counter for list indexing
+  for(c in colnames(df)){  # Iterating over variables names
+    if(c != "bwt"){
+      if(is.numeric(df[1,c])){  # If the variable is numeric, make a scatterplot
+        plotlist[[count]] <-ggplot(data=df)+
+        geom_point(aes_string(x=df[,c],y=df$bwt))+  # aes_string instead of aes to prevent erasing of values at last iteration
+          theme_bw()+xlab(c)+ylab("Birth weight")
+      } else{  # If the variable is a factor, make a boxplot
+      plotlist[[count]] <-ggplot(data=df)+
+        geom_boxplot(aes_string(x=df[,c],y=df$bwt))+
+        theme_bw()+xlab(c)+ylab("Birth weight")
+      }
+      count <- count + 1
+    }
+  }
+  return(plotlist)
+}
+
+```
+
+```{r data_check, include =F}
+grid.arrange(grobs=birth_plotter(birth_weight),ncol=2)  # Something is wrong, premature babies are heavier...
+```
+

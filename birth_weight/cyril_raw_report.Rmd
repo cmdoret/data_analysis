@@ -11,6 +11,7 @@ birth_weight<-read.table("birtweigth_study.txt", sep= " ") # data is separated b
 row.names(birth_weight) <- NULL  # Resetting row names
 birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg
 birth_weight$bwt <- birth_weight$bwt/1000  # Converting from grams to kg
+nice_varnames <- c(age = "age [years]", lwt="weight of mother [kg]", bwt="birth weigh [kg]t",ht="known hypertension", ptd="preterm birth", smoke = "smoking mother")
 birth_plotter <- function(df){  # Creating a function to plot all variables vs birth weight
   plotlist <- list()  # Initiating the list that will contain plots
   count <- 1  # Counter for list indexing
@@ -19,11 +20,11 @@ birth_plotter <- function(df){  # Creating a function to plot all variables vs b
       if(is.numeric(df[1,c])){  # If the variable is numeric, make a scatterplot
         plotlist[[count]] <-ggplot(data=df)+
         geom_point(aes_string(x=df[,c],y=df$bwt))+  # aes_string instead of aes to prevent erasing of values at last iteration
-          theme_bw()+xlab(c)+ylab("Birth weight")
+          theme_bw()+xlab(nice_varnames[c])+ylab("Birth weight")
       } else{  # If the variable is a factor, make a boxplot
       plotlist[[count]] <-ggplot(data=df)+
         geom_boxplot(aes_string(x=df[,c],y=df$bwt))+
-        theme_bw()+xlab(c)+ylab("Birth weight")
+        theme_bw()+xlab(nice_varnames[c])+ylab("Birth weight")
       }
       count <- count + 1
     }
@@ -33,7 +34,17 @@ birth_plotter <- function(df){  # Creating a function to plot all variables vs b
 
 ```
 
-```{r data_check, include =F}
+Visualising the date reveals that premature babies are heavier than the others (Figure 1). These results are surprising and should be interpreted with caution as there may be a mistake in the data. The factor levels may for example have been switched.
+If we consider the data to be valid anyway and analyze it, we can build a linear model and perform an ANOVA on it, as the data is normally distributed (Figure 2).
+
+```{r dataviz,echo=F, fig.height= 8}
 grid.arrange(grobs=birth_plotter(birth_weight),ncol=2)  # Something is wrong, premature babies are heavier...
 ```
 
+
+```{r data_check, echo=F}
+
+qqnorm(birth_weight$bwt)
+qqline(birth_weight$bwt)
+
+```

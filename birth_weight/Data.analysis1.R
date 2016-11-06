@@ -74,12 +74,12 @@ plots_df <- function(df){
         plotslist[[count]] <- ggplot(data=df) +
           geom_point(aes_string(x = df[,c], y = df$bwt)) +
           theme_bw() + xlab(names_df[c]) + ylab("Newborn weight") +
-          ggtitle(paste("Newborn weight VS", names_df[c]))
+          ggtitle(paste("Newborn weight [kg] VS", names_df[c]))
     }else{
       plotslist[[count]] <- ggplot(data=df) +
         geom_boxplot(aes_string(x = df[,c], y = df$bwt)) +
         theme_bw() + xlab(names_df[c]) + ylab("Newborn weight") +
-        ggtitle(paste("Newborn weight VS", names_df[c]))
+        ggtitle(paste("Newborn weight [kg] VS", names_df[c]))
      }
     count <- count + 1
     }

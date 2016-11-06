@@ -48,3 +48,7 @@ qqnorm(birth_weight$bwt)
 qqline(birth_weight$bwt)
 
 ```
+
+
+
+#### Comment de Virginie : Pour ton dernier paragraphe, c'est pas une ANCOVA qu'on devrait faire à la place d'une ANOVA? Vu qu'on a plusieurs variables qui ont le potentiel d'influencer la variable réponse ?

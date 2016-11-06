@@ -51,4 +51,4 @@ qqline(birth_weight$bwt)
 
 
 
-#### Comment de Virginie : Pour ton dernier paragraphe, c'est pas une ANCOVA qu'on devrait faire à la place d'une ANOVA? Vu qu'on a plusieurs variables qui ont le potentiel d'influencer la variable réponse ?
+#### Comment de Virginie : Pour ton dernier paragraphe, c'est pas une ANCOVA qu'on devrait faire à la place d'une ANOVA? Vu qu'on a plusieurs variables qui ont le potentiel d'influencer la variable réponse ? En plus, une ANCOVA c'est un mix ANOVA et régression donc c'est parfait vu qu'on a des variables qualitatives et quantitatives comme variables explicatives.

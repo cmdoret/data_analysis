@@ -1,0 +1,25 @@
+---
+title: 'Basic Data Analysis: A study of low birth weight'
+author: "Virginie Ricci"
+date: "3 novembre 2016"
+output: pdf_document
+---
+
+
+```{r setup, include=TRUE}
+# knitr::opts_chunk$set(echo = TRUE) >> echo = TRUE >> print dans le pdf
+
+plots <- function(file){
+  boxplot()
+  
+  
+  
+  
+}
+```
+
+
+```{r plots_generation, include=FALSE}
+
+
+```

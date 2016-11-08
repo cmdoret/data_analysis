@@ -1,0 +1,19 @@
+ 
+Assignment: basic data analysis ("A study of low birth weight")
+A study of low birth weight
+
+The file birthweigth_study.csv contains data from a study on birth weight, the goal being to identify factors linked to a lower birth weight. The variables registered are:
+
+    age   Age of the mother
+    lwt     Mother's weight before pregnancy
+    smoke Smoking habits
+    ht     Known hypertension
+    bwt    Newborn weight
+    ptd    Preterm birth
+
+Analyse these data in order to identify variables affecting the birth weight and their possible interactions.
+
+Using your results, you should produce two reports:
+
+    a one-page report summarizing your results, with the minimal amount of technical details. The target audience of this report is a medical doctor interested in the results of this study.
+    a longer report detailing the context in which your data fits ("know your data"), the question that was asked, the analysis of the data, your results and all necessary supporting information. The target audience is another data analyst who has to evaluate your work (e.g. a reviewer).

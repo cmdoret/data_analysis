@@ -3,6 +3,7 @@ title: 'Raw report: Birth weight'
 author: "Cyril Matthey-Doret"
 date: "November 3, 2016"
 output: pdf_document
+linkcolor: "blue"
 ---
 
 ```{r setup, include=F}
@@ -12,6 +13,7 @@ row.names(birth_weight) <- NULL  # Resetting row names
 birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg
 birth_weight$bwt <- birth_weight$bwt/1000  # Converting from grams to kg
 nice_varnames <- c(age = "age [years]", lwt="weight of mother [kg]", bwt="birth weigh [kg]t",ht="known hypertension", ptd="preterm birth", smoke = "smoking mother")
+
 birth_plotter <- function(df){  # Creating a function to plot all variables vs birth weight
   plotlist <- list()  # Initiating the list that will contain plots
   count <- 1  # Counter for list indexing
@@ -20,11 +22,15 @@ birth_plotter <- function(df){  # Creating a function to plot all variables vs b
       if(is.numeric(df[1,c])){  # If the variable is numeric, make a scatterplot
         plotlist[[count]] <-ggplot(data=df)+
         geom_point(aes_string(x=df[,c],y=df$bwt))+  # aes_string instead of aes to prevent erasing of values at last iteration
-          theme_bw()+xlab(nice_varnames[c])+ylab("Birth weight")
+          theme_bw()+xlab(nice_varnames[c])+ylab("Birth weight")+
+          ggtitle(paste("Newborn weight [kg] VS", nice_varnames[c]))+
+          theme(plot.title=element_text(size = 12, face="bold"))
       } else{  # If the variable is a factor, make a boxplot
       plotlist[[count]] <-ggplot(data=df)+
         geom_boxplot(aes_string(x=df[,c],y=df$bwt))+
-        theme_bw()+xlab(nice_varnames[c])+ylab("Birth weight")
+        theme_bw()+xlab(nice_varnames[c])+ylab("Birth weight")+
+        ggtitle(paste("Newborn weight [kg] VS", nice_varnames[c]))+
+        theme(plot.title=element_text(size = 12, face="bold"))
       }
       count <- count + 1
     }
@@ -33,11 +39,15 @@ birth_plotter <- function(df){  # Creating a function to plot all variables vs b
 }
 
 ```
+#Data processing:
 
-Visualising the date reveals that premature babies are heavier than the others (Figure 1). These results are surprising and should be interpreted with caution as there may be a mistake in the data. The factor levels may for example have been switched.
-If we consider the data to be valid anyway and analyze it, we can build a linear model and perform an ANOVA on it, as the data is normally distributed (Figure 2).
+Weights were in different units (kg and pounds), row numbers started from 85 and many were missing.
 
-```{r dataviz,echo=F, fig.height= 8}
+Visualising the data reveals that premature babies are heavier than the others (Figure 1). These results are surprising and should be interpreted with caution as there may be a mistake in the data. The factor levels may for example have been switched.
+If we consider the data to be valid anyway and analyze it, we can see the residuals are not normally distributed, but a square transformation of the birth weight values solved this issue.
+After transforming the data, we performed an ANCOVA.
+
+```{r dataviz,echo=F, fig.height= 8, fig.width=8}
 grid.arrange(grobs=birth_plotter(birth_weight),ncol=2)  # Something is wrong, premature babies are heavier...
 ```
 
@@ -46,12 +56,11 @@ grid.arrange(grobs=birth_plotter(birth_weight),ncol=2)  # Something is wrong, pr
 
 qqnorm(birth_weight$bwt)
 qqline(birth_weight$bwt)
+shapiro.test(residuals(lm(bwt ~ ht*smoke*lwt*ptd*age,birth_weight)))
+shapiro.test(residuals(lm(bwt^2 ~ ht*smoke*lwt*ptd*age,birth_weight)))
 
 ```
 
 
 
-#### Comment de Virginie : Pour ton dernier paragraphe, c'est pas une ANCOVA qu'on devrait faire à la place d'une ANOVA? Vu qu'on a plusieurs variables qui ont le potentiel d'influencer la variable réponse ? En plus, une ANCOVA c'est un mix ANOVA et régression donc c'est parfait vu qu'on a des variables qualitatives et quantitatives comme variables explicatives.
 
-
-### Si jamais, les mères avec de l'hypertension ont de forte probabilité d'avoir des enfants prématurés et donc tout légers. Donc on a aussi des sales résultats (http://americanpregnancy.org/pregnancy-complications/pregnancy-induced-hypertension/)

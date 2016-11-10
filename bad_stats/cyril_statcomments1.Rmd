@@ -42,6 +42,7 @@ Here are 2 figures illustrating the number of jobs added in the US under differe
 
 
 ```{r, figure2a, echo=F,out.height="400px", out.width = "400px"}
+
 knitr::include_graphics("./jobs_presidency.png")
 
 ```
@@ -53,4 +54,4 @@ knitr::include_graphics("./public_jobs_presidency.png")
 
 It is interesting to note that, although both figures are correct and measure two different things, they could be used to convey opposite messages to the unaware reader: When considering all sectors, It appears the number of jobs increased under the Obama presidency. When focusing on the public sector, however Obama is the only president with a negative job creation.
 
-Unlike the CNN video, the article from the Washington Post warns against such comparisons, stating that there are many other important factors affecting job creation. This example shows that plotting only a subset of the same data can give a totally different view of the same situation and that understanding the background is important for a proper interpretation.
+Unlike the CNN video, the article from the Washington Post warns against such comparisons, stating that there are many other important factors affecting job creation more than policies issued by the president. This example shows that plotting only a subset of the same data can give a totally different view of the same situation and that understanding the background is important for a proper interpretation.

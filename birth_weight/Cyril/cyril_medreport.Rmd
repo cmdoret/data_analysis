@@ -1,0 +1,7 @@
+---
+title: "A study of birth weight"
+author: "Cyril Matthey-Doret"
+date: "November 10, 2016"
+output: pdf_document
+---
+

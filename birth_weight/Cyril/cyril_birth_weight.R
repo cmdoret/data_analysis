@@ -3,7 +3,7 @@
 # Thu Nov  3 10:34:26 2016 ------------------------------
 
 # Loading data:
-setwd ("/home/cyril/Documents/Master/sem_1/Data_analysis/data/")
+setwd ("/home/cyril/Documents/Master/sem_1/Data_analysis/reports/birth_weight/")
 birth_weight<-read.table("birtweigth_study.txt", sep= " ")
 row.names(birth_weight) <- NULL
 

@@ -55,3 +55,13 @@ knitr::include_graphics("./public_jobs_presidency.png")
 It is interesting to note that, although both figures are correct and measure two different things, they could be used to convey opposite messages to the unaware reader: When considering all sectors, It appears the number of jobs increased under the Obama presidency. When focusing on the public sector, however Obama is the only president with a negative job creation.
 
 Unlike the CNN video, the article from the Washington Post warns against such comparisons, stating that there are many other important factors affecting job creation more than policies issued by the president. This example shows that plotting only a subset of the same data can give a totally different view of the same situation and that understanding the background is important for a proper interpretation.
+
+#Example 3: Voters profiles in 2016 US elections
+
+The plot below was published on the [RTS website](http://www.rts.ch/info/monde/8154717-la-base-des-electeurs-de-donald-trump-des-blancs-non-citadins.html) (Radio Télévision Suisse) and sums up the proportion of voters for the 2 main candidates in the 2016 US presidential elections in different layers of populations. 
+
+```{r echo=F, out.width="500px", fig.align='center'}
+knitr::include_graphics("./voters_us_elections2016.png")
+```
+
+Although this figure depicts properly the proportion of voters in each categories, It doesn't give any information about the size of each categories. It would have been more informative to add this information, either by making the bar width proportional to the size of each category, or simply by adding the proportion of population represented by each category on the side. Omitting this information gives the visual impression that Clinton has a lot more voters, which is not the case.

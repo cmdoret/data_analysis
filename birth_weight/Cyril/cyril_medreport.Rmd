@@ -5,3 +5,8 @@ date: "November 10, 2016"
 output: pdf_document
 ---
 
+#Introduction:
+
+The aim of the study is to identify factors associated with low birth weight.
+
+#

@@ -65,3 +65,24 @@ knitr::include_graphics("./voters_us_elections2016.png")
 ```
 
 Although this figure depicts properly the proportion of voters in each categories, It doesn't give any information about the size of each categories. It would have been more informative to add this information, either by making the bar width proportional to the size of each category, or simply by adding the proportion of population represented by each category on the side. Omitting this information gives the visual impression that Clinton has a lot more voters, which is not the case.
+
+
+#Example 4: Meat consumption and colon cancer
+
+The last figure was used in a book called "The China Study"\footnote{The China study: the most comprehensive study of nutrition ever conducted and the startling implications for diet, weight loss and long-term health
+T. Campbell-Thomas Campbell - BenBella Books - 2005} and shows a correlation between the daily meat consumption of different countries and the incidence of colon cancer.
+
+
+```{r echo=F, out.width="400px", fig.align='center'}
+
+knitr::include_graphics("./vegan_cancer.png")
+
+```
+
+The figure shows a pretty strong positive correlation between the consumption of meat food and colon cancer in women. The correlation is interpreted as an association between cancer and meat consumption, but it could simply be caused by covariates. To illustrate this possibility, I provided an example generated in [Gapminder](http://www.gapminder.org/world/#$majorMode=chart$is;shi=t;ly=2003;lb=f;il=t;fs=11;al=0;stl=t;st=t;nsl=t;se=t$wst;tts=C$ts;sp=5.59290322580644;ti=2002$zpv;v=0$inc_x;mmid=XCOORDS;iid=pyj6tScZqmEfI4sLVvEQtHw;by=ind$inc_y;mmid=YCOORDS;iid=phAwcNAVuyj2L5YHqVxRTLA;by=ind$inc_s;uniValue=8.21;iid=phAwcNAVuyj0XOoBL_n5tAQ;by=ind$inc_c;uniValue=255;gid=CATID0;by=grp$map_x;scale=log;dataMin=10300000;dataMax=11740000000000$map_y;scale=log;dataMin=1;dataMax=80430$map_s;sma=49;smi=2.65$cd;bd=0$inds=) below, that shows a strong correlation between the countries' GDP and the number of new cases of female colon cancers. There is no apparent link between the two variables and there is probably an unknown covariate that is affecting the cancer incidence.
+
+```{r echo=F, out.width="400px",fig.align='center'}
+
+knitr::include_graphics("./vegan_cancer_corr.png")
+
+```

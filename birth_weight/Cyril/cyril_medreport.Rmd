@@ -52,4 +52,4 @@ According to our results, the birth weight is affected by the variables in the f
   
 #Conclusions:
 
-Those results are surprising and should be interpreted carefully. They may be a consequence of the biased sample sizes across groups.
+Those results are surprising and should be interpreted cautiously. They may be a consequence of the biased sample sizes of certain groups.

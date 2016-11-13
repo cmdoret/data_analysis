@@ -58,7 +58,7 @@ library(knitr)
 kable(summary(birth_weight)[1:2,c(3,4,6)])
 ```
 
-`r round(100*length(birth_weight$bwt[birth_weight$ht=="HT"])/length(birth_weight$bwt),1)`% of the mothers in the dataset have hypertension, and `r round(100*length(birth_weight$bwt[birth_weight$ptd=="PPREM"])/length(birth_weight$bwt),1)`% of the newborn are prematured. Those values are not representative of real populations. As a matter of fact, in 1989-1994, the prevalence of hypertension in women was estimated to be 23.4% in the USA by the [National Health Examination Surveys](http://emedicine.medscape.com/article/1928048-overview#showall). The percentage of preterm birth in the USA was estimated to 9.6%, in 2014 by the Center for [Disease Control and Prevention](http://www.cdc.gov/nchs/fastats/births.htm).
+`r round(100*length(birth_weight$bwt[birth_weight$ht=="HT"])/length(birth_weight$bwt),1)`% of the mothers in the dataset have hypertension, and `r round(100*length(birth_weight$bwt[birth_weight$ptd=="PPREM"])/length(birth_weight$bwt),1)`% of the newborn are prematured. Those values are not representative of real populations. As a matter of fact, in 1989-1994, the prevalence of hypertension in women was estimated to be 23.4% in the USA by the [National Health Examination Surveys](http://emedicine.medscape.com/article/1928048-overview#showall). The percentage of preterm birth in the USA was estimated to 9.6%, in 2014 by the [Center for Disease Control and Prevention](http://www.cdc.gov/nchs/fastats/births.htm).
 
 In addition to poorly representing the general population, this sample does not represent all combination of factors. Although this should be the most represented group, there are no women without hypertension who doesn't smoke and whose child was not born preterm. The absence of such combination will likely affect the reliability of any model when analysing the data. The very different sizes of the groups could also have an impact on the homogeneity of variance.
 
@@ -71,11 +71,10 @@ Visualizing the data reveals that premature babies are heavier than the others (
 
 #Statistical analysis:
 
-In order to evaluate the effect of the different factors on the newborn weight, we can try to perform a linear model.
+In order to evaluate the effect of the different factors on the newborn weight, we can try to perform a linear model, since the data is normally distributed (Figure 2).
 
 
-
-From the qqplot (Figure 2), the residuals of the model do not seem to deviate too much from the normality. The residuals vs fitted plot does not show a significant pattern or particular signs of heteroscedasticity. 
+From the qqplot (Figure 3), the residuals of the model do not seem to deviate too much from the normality. The residuals vs fitted plot does not show a significant pattern or particular signs of heteroscedasticity. 
 A linear model should be a reasonable approach. Interactions will not be accounted for in the model as it is complex to infer a biological meaning to interactions between multiple variables.
 
 ```{r linear_model, echo=T}
@@ -100,6 +99,10 @@ All of these results are counterintuitive and should be interpreted carefully. T
 
 ```{r dataviz,echo=F, fig.height= 8, fig.width=8, fig.cap="Visualization of the different variables against birth weight"}
 grid.arrange(grobs=birth_plotter(birth_weight),ncol=2)  # Something is wrong, premature babies are heavier...
+```
+
+```{r data_distr, echo=F, fig.height=4, fig.width=6, fig.cap="The birth weight follows a gaussian distribution"}
+hist(birth_weight$bwt, breaks=30, main="Distribution of birth weight", xlab="Birth weight [kg]", ylab="Frequency")
 ```
 
 ```{r data_check, echo=F, warning=F, fig.height=8, fig.width=8, fig.cap="Quality check of the linear model"}

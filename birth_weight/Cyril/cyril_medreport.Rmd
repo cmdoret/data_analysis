@@ -1,12 +1,55 @@
 ---
-title: "A study of birth weight"
+title: "Study of birth weight"
 author: "Cyril Matthey-Doret"
 date: "November 10, 2016"
 output: pdf_document
 ---
 
+```{r setup, echo=F}
+setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
+birth_weight<-read.table("birtweigth_study.txt", sep= " ") # data is separated by spaces (even though the format was originally csv)
+row.names(birth_weight) <- NULL  # Resetting row names
+birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg
+birth_weight$bwt <- birth_weight$bwt/1000  # Converting from grams to kg
+nice_varnames <- c(age = "age [years]", lwt="weight of mother [kg]", bwt="birth weigh [kg]t",ht="known hypertension", ptd="preterm birth", smoke = "smoking mother")
+```
+
 #Introduction:
 
 The aim of the study is to identify factors associated with low birth weight.
 
-#
+#Description of the data:
+
+Six variables are studied:
+
+  * Weight of the newborn
+  * Weight of the mothers before pregnancy
+  * Hypertension status of the mother (hypertension or no hypertension)
+  * Smoking habit of the mother (smoker or non-smoker)
+  * Age of the mother
+  * Preterm delivery status (preterm  or full term delivery)
+  
+
+The dataset does not represent well the reality as the sizes of the different groups are strongly biased:
+
+  * `r round(100*length(birth_weight$bwt[birth_weight$ht=="HT"])/length(birth_weight$bwt),1)`% of the mothers have hypertension. According to the [National Health Examination Surveys](http://emedicine.medscape.com/article/1928048-overview#showall),  23.4% of women suffer from hypertension in the USA between 1989 and 1994.
+  * `r round(100*length(birth_weight$bwt[birth_weight$ptd=="PPREM"])/length(birth_weight$bwt),1)`% of the newborn are prematured. According to the [Center for Disease Control and Prevention](http://www.cdc.gov/nchs/fastats/births.htm), the frequency of preterm birth was of 9.6% in the USA in 2014.
+  * `r round(100*length(birth_weight$bwt[birth_weight$smoke=="SMOKE"])/length(birth_weight$bwt),1)`% of the mothers are smokers. According to the [Center for Disease Control and Prevention](http://www.cdc.gov/tobacco/data_statistics/fact_sheets/adult_data/cig_smoking/), 14.8% of women smoked in 2014, in the USA.
+  
+#Results:
+
+```{r model, echo=F}
+mdl <- summary(lm(bwt ~ ht+smoke+lwt+ptd+age,data=birth_weight))
+```
+
+According to our results, the birth weight is affected by the variables in the following ways:
+
+  * Hypertension positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][2]), 3)`)
+  * Smoking positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][3]), 3)`)
+  * The weight of the mother before pregnancy positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][4]), 3)`)
+  * Preterm delivery positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][5]), 3)`)
+  * The age of the mother has no effect on birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][6]), 3)`)
+  
+#Conclusions:
+
+Those results are surprising and should be interpreted carefully. They may be a consequence of the biased sample sizes across groups.

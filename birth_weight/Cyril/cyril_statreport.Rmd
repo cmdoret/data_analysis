@@ -1,5 +1,5 @@
 ---
-title: 'Raw report: Birth weight'
+title: 'Study of low birth weight'
 author: "Cyril Matthey-Doret"
 date: "November 3, 2016"
 output: pdf_document
@@ -8,7 +8,7 @@ linkcolor: "blue"
 
 ```{r setup, include=F}
 library(ggplot2);library(gridExtra)
-setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/reports/birth_weight/")
+setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
 birth_weight<-read.table("birtweigth_study.txt", sep= " ") # data is separated by spaces (even though the format was originally csv)
 row.names(birth_weight) <- NULL  # Resetting row names
 birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg
@@ -24,13 +24,13 @@ birth_plotter <- function(df){  # Creating a function to plot all variables vs b
         plotlist[[count]] <-ggplot(data=df)+
         geom_point(aes_string(x=df[,c],y=df$bwt))+  # aes_string instead of aes to prevent erasing of values at last iteration
           theme_bw()+xlab(nice_varnames[c])+ylab("Birth weight")+
-          ggtitle(paste("Newborn weight [kg] VS", nice_varnames[c]))+
+          ggtitle(paste(LETTERS[count], ": ", nice_varnames[c]))+
           theme(plot.title=element_text(size = 12, face="bold"))
       } else{  # If the variable is a factor, make a boxplot
       plotlist[[count]] <-ggplot(data=df)+
         geom_boxplot(aes_string(x=df[,c],y=df$bwt))+
         theme_bw()+xlab(nice_varnames[c])+ylab("Birth weight")+
-        ggtitle(paste("Newborn weight [kg] VS", nice_varnames[c]))+
+        ggtitle(paste(LETTERS[count], ": ", nice_varnames[c]))+
         theme(plot.title=element_text(size = 12, face="bold"))
       }
       count <- count + 1
@@ -51,43 +51,60 @@ The dataset contains 6 variables:
   * bwt: The weight of the newborn. (Continuous numeric)
   * ptd: Wether the newborn is prematured or not. (Two-levels factor)
 
-It is interesting to note that the sample size is very small for some factor levels:
+It is interesting to note that the sample size in each group is strongly unbalanced:
 
+```{r group_size, echo=F}
+library(knitr)
+kable(summary(birth_weight)[1:2,c(3,4,6)])
+```
+
+`r round(100*length(birth_weight$bwt[birth_weight$ht=="HT"])/length(birth_weight$bwt),1)`% of the mothers in the dataset have hypertension, and `r round(100*length(birth_weight$bwt[birth_weight$ptd=="PPREM"])/length(birth_weight$bwt),1)`% of the newborn are prematured. Those values are not representative of real populations. As a matter of fact, in 1989-1994, the prevalence of hypertension in women was estimated to be 23.4% in the USA by the [National Health Examination Surveys](http://emedicine.medscape.com/article/1928048-overview#showall). The percentage of preterm birth in the USA was estimated to 9.6%, in 2014 by the Center for [Disease Control and Prevention](http://www.cdc.gov/nchs/fastats/births.htm).
+
+In addition to poorly representing the general population, this sample does not represent all combination of factors. Although this should be the most represented group, there are no women without hypertension who doesn't smoke and whose child was not born preterm. The absence of such combination will likely affect the reliability of any model when analysing the data. The very different sizes of the groups could also have an impact on the homogeneity of variance.
 
 #Data processing:
 
 Weights units were not provided, but it appears that newborn weights were in pounds and mothers weights were in grams, row numbers also started from 85 and many were missing.
 Although we had no formal confirmation of the weight units, we converted them to kilograms.
 
-Visualizing the data reveals that premature babies are heavier than the others (Figure 1). These results are surprising and should be interpreted with caution as there may be a mistake in the data. The factor levels may for example have been switched.
+Visualizing the data reveals that premature babies are heavier than the others (Figure 1, E). These results are surprising and should be interpreted with caution as there may be a mistake in the data. When compared to real populations, both the median values and sample size of the different groups suggest there may have been an inversion of the levels at some point, although it is not possible to be sure of it.
 
-There is a weak correlation between the weight of mother and the weight of the child (p-value = `r round(cor.test(birth_weight$lwt, birth_weight$bwt)$p.value, 3)`, coefficient = `r round( as.numeric(cor(birth_weight$bwt, birth_weight$lwt)), 3)`)
+#Statistical analysis:
 
-```{r dataviz,echo=F, fig.height= 8, fig.width=8}
+In order to evaluate the effect of the different factors on the newborn weight, we can try to perform a linear model.
+
+
+
+From the qqplot (Figure 2), the residuals of the model do not seem to deviate too much from the normality. The residuals vs fitted plot does not show a significant pattern or particular signs of heteroscedasticity. 
+A linear model should be a reasonable approach. Interactions will not be accounted for in the model as it is complex to infer a biological meaning to interactions between multiple variables.
+
+```{r linear_model, echo=T}
+summary(lm(bwt ~ ht+smoke+lwt+ptd+age,data=birth_weight))
+
+```
+
+
+According to the model, Hypertension status, smoking habit, mother's weight and preterm delivery status will all have an effect on the birth weight, whereas the age of the mother will not.
+
+#Conclusion:
+
+According to the model, the factors associated with a low birth weight are:
+
+  * Non-smoking mother
+  * Non-hypertensive mother
+  * Full term delivery
+  
+All of these results are counterintuitive and should be interpreted carefully. The data may have suffered manipulation errors, as mentioned previously, or the surprising results may also be caused by the small sample size in some groups.
+
+#Figures:
+
+```{r dataviz,echo=F, fig.height= 8, fig.width=8, fig.cap="Visualization of the different variables against birth weight"}
 grid.arrange(grobs=birth_plotter(birth_weight),ncol=2)  # Something is wrong, premature babies are heavier...
 ```
 
-In order to measure the impact of the different factors on the newborn weight, we can try to perform a linear model.
+```{r data_check, echo=F, warning=F, fig.height=8, fig.width=8, fig.cap="Quality check of the linear model"}
 
-```{r data_check, echo=F, warning=F, fig.height=8}
-
-
-#qqnorm(resid(lm(bwt ~ ht*smoke*lwt*ptd*age,birth_weight)))
-#qqline(resid(lm(bwt ~ ht*smoke*lwt*ptd*age,birth_weight)))
 par(mfrow=c(2,2))
-plot(lm(bwt ~ ht*smoke*lwt*ptd*age,birth_weight))
-
-#shapiro.test(residuals(lm(bwt ~ ht*smoke*lwt*ptd*age,birth_weight)))
-
+plot(lm(bwt ~ ht+smoke+lwt+ptd+age,birth_weight))
 
 ```
-
-From the qqplot, the residuals of the model do not seem to deviate too much from the normality. The residuals vs fitted plot does not show a significant pattern.
-A linear model should provide a reasonable approximation.
-
-```{r linear_model, echo=T}
-summary(lm(bwt ~ ht+smoke+lwt+ptd+age,birth_weight))
-summary(lm(bwt ~ ht+smoke+lwt+ptd,birth_weight))
-```
-
-

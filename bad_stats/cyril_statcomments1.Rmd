@@ -79,10 +79,4 @@ knitr::include_graphics("./vegan_cancer.png")
 
 ```
 
-The figure shows a pretty strong positive correlation between the consumption of meat food and colon cancer in women. The correlation is interpreted as an association between cancer and meat consumption, but it could simply be caused by covariates. To illustrate this possibility, I provided an example generated in [Gapminder](http://www.gapminder.org/world/#$majorMode=chart$is;shi=t;ly=2003;lb=f;il=t;fs=11;al=0;stl=t;st=t;nsl=t;se=t$wst;tts=C$ts;sp=5.59290322580644;ti=2002$zpv;v=0$inc_x;mmid=XCOORDS;iid=pyj6tScZqmEfI4sLVvEQtHw;by=ind$inc_y;mmid=YCOORDS;iid=phAwcNAVuyj2L5YHqVxRTLA;by=ind$inc_s;uniValue=8.21;iid=phAwcNAVuyj0XOoBL_n5tAQ;by=ind$inc_c;uniValue=255;gid=CATID0;by=grp$map_x;scale=log;dataMin=10300000;dataMax=11740000000000$map_y;scale=log;dataMin=1;dataMax=80430$map_s;sma=49;smi=2.65$cd;bd=0$inds=) below, that shows a strong correlation between the countries' GDP and the number of new cases of female colon cancers. There is no apparent link between the two variables and there is probably an unknown covariate that is affecting the cancer incidence.
-
-```{r echo=F, out.width="400px",fig.align='center'}
-
-knitr::include_graphics("./vegan_cancer_corr.png")
-
-```
+The figure shows a pretty strong positive correlation between the consumption of meat food and colon cancer in women. This correlation is interpreted as an association between cancer and meat consumption. The first issue is that meat consumption can be associated with many economic and cultural covariates and is not necessarily directly related to cancer. The other issue is that only a few countries are considered and maybe the correlation would not hold when including more countries. It is risky to claim a causal link between those 2 variables simply based on a correlation.

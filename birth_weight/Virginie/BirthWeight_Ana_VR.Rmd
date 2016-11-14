@@ -1,0 +1,236 @@
+---
+title: 'A study of low birth weight'
+author: "Virginie Ricci"
+date: "13 novembre 2016"
+output: pdf_document
+linkcolor: "blue"
+---
+
+
+# 1. Goal
+
+The aim of the study is to identify factors resulting in lower birth weights. 
+
+# 2. Dataset
+
+```{r setup, include=FALSE}
+
+setwd(dir="/Users/Baboo19/Documents/R/")
+
+dataframe <- read.csv("birtweigth_study.csv", sep="", header=TRUE)
+head(dataframe)
+names(dataframe)
+str(dataframe)
+
+row.names(dataframe) = NULL # reset row names : 1 -> length(dataframe[,1])
+
+```
+
+
+In this report, we analyse [birtweigth_study.csv](http://moodle2.unil.ch/pluginfile.php/642310/mod_page/content/7/birtweigth_study.csv), which is a dataset containing informations about `r length(dataframe[,1])` mothers and their newborn baby. The source of the dataset is unknown. 
+
+The dataframe contains 6 variables:
+
+- Age of the mother (age): `r class(dataframe$age)`
+- Mother's weight before pregnancy (lwt): `r class(dataframe$lwt)`
+- Smoking habits of the mother (smoke): `r class(dataframe$smoke)`
+- Known hypertension of the mother (ht): `r class(dataframe$ht)`
+- Newborn weight (bwt): `r class(dataframe$bwt)`
+- Preterm birth (ptd): `r class(dataframe$ptd)`
+
+```{r data summary, include=FALSE}
+
+summary(dataframe)
+
+summary(dataframe$ht[dataframe$ptd=="PPREM"])
+
+summary(dataframe$ht[dataframe$ptd=="NOPPREM"])
+
+summary(dataframe$ht[dataframe$smoke=="SMOKE"])
+summary(dataframe$ht[dataframe$smoke=="NOSMOKE"])
+
+summary(dataframe$smoke[dataframe$ptd=="PPREM"])
+summary(dataframe$smoke[dataframe$ptd=="NOPPREM"])
+
+summary(dataframe$smoke[dataframe$ht=="HT"])
+summary(dataframe$smoke[dataframe$ht=="NOHT"])
+
+summary(dataframe$ptd[dataframe$ht=="HT"])
+summary(dataframe$ptd[dataframe$ht=="NOHT"])
+
+summary(dataframe$ptd[dataframe$smoke=="SMOKE"])
+summary(dataframe$ptd[dataframe$smoke=="NOSMOKE"])
+
+
+summary(dataframe$ht[dataframe$ptd=="PPREM" & dataframe$smoke=="SMOKE"])
+summary(dataframe$ht[dataframe$ptd=="PPREM" & dataframe$smoke=="NOSMOKE"])
+summary(dataframe$ht[dataframe$ptd=="NOPPREM"& dataframe$smoke=="SMOKE"])
+summary(dataframe$ht[dataframe$ptd=="NOPPREM"& dataframe$smoke=="NOSMOKE"])
+
+
+summary(dataframe$smoke[dataframe$ptd=="PPREM" & dataframe$ht=="HT"])
+summary(dataframe$smoke[dataframe$ptd=="PPREM" & dataframe$ht=="NOHT"])
+summary(dataframe$smoke[dataframe$ptd=="NOPPREM"& dataframe$ht=="HT"])
+summary(dataframe$smoke[dataframe$ptd=="NOPPREM"& dataframe$ht=="NOHT"])
+
+
+summary(dataframe$ptd[dataframe$ht=="HT" & dataframe$smoke=="SMOKE"])
+summary(dataframe$ptd[dataframe$ht=="HT" & dataframe$smoke=="NOSMOKE"])
+summary(dataframe$ptd[dataframe$ht=="NOHT"& dataframe$smoke=="SMOKE"])
+summary(dataframe$ptd[dataframe$ht=="NOHT"& dataframe$smoke=="NOSMOKE"])
+
+# There are 0 mother which doesn't suffer of hypertension, doesn't smoke and gives brith at term.
+
+```
+
+
+When looking at the dataset, we observe it is biased. There are `r round(length(dataframe$smoke[dataframe$smoke=="SMOKE"])/length(dataframe$smoke),3)*100`% of mothers who smoke, `r round(length(dataframe$ht[dataframe$ht=="HT"])/length(dataframe$ht),3)*100`% of mothers who suffer of hypertension and `r round(length(dataframe$ptd[dataframe$ptd=="PPREM"])/length(dataframe$ptd),3)*100`% who give birth to preterm child.
+More rigourous studies would have equal group sizes. These different population sizes are problematic for the analysis meaning that some factors will have more weight than others. Moreover, if we look at the possible combinations between the different factors, we observe that there is no mother who doesn't suffer of hypertension, doesn't smoke and gives birth at term. As a result, the conclusions of this study will not be reliable. Finally, it seems that the unit of mothers and newborn babies aren't the same. Regarding the values, we suppose that the mothers weight before pregnancy is in pounds and the newborns weight is in grams. 
+
+
+# 3. Method and Results
+
+In this study, there is one response variable which is the weight of newborn. The response variable is numeric, meaning that we need to check its distribution.
+
+There are 5 explanatory variables: a) the age and the weight of the mother before pregnancy, which are integers, and b) the smoking status, the hypertension status and the preterm child status, which are factors. 
+
+To solve the problem of units for weight of the mother before pregnancy and her child, we convert both values in kilograms.
+
+For practical issues, we set correctly the numbering of the dataset. 
+
+```{r units modification, include=FALSE}
+
+### lwt : Mother's weight before pregnancy in POUNDS (lb) --> change to KILOGRAMS
+### bwt : Newborn weight in GRAMS --> change to KILOGRAMS
+# Conversion factor lb <-> kg : 1 lb = 0.45359237 kg
+
+dataframe$lwt <- dataframe$lwt*0.45359237 # kg
+dataframe$bwt <- dataframe$bwt/1000 # kg
+
+
+```
+
+
+```{r boxplot response variable, include=FALSE, fig.width=4, fig.height=4, fig.align="center"}
+
+par(mfrow=c(1,1))
+boxplot(dataframe$bwt, main="Distribution of Newborn weights", ylab="weight [kg]")
+
+```
+
+```{r data homogeneity, echo=FALSE, fig.width=10, fig.height=5, fig.align="center"}
+
+par(mfrow=c(1,2))
+qqnorm(dataframe$bwt, main="Normality of Newborn weights"); qqline(dataframe$bwt) 
+
+qqnorm(residuals(lm(bwt ~ ht*smoke*lwt*ptd*age, dataframe)), main="Normality of Newborn weights residuals"); qqline(residuals(lm(bwt ~ ht*smoke*lwt*ptd*age, dataframe))) 
+
+```
+
+The graph on the left shows that the distribution of the reponse variable seems normally distributed. 
+The result of the Shapiro-Wilk test completes this conclusion: the value of the statistic is `r shapiro.test(dataframe$bwt)$statistic` and the p-value for the test is `r shapiro.test(dataframe$bwt)$p.value`. In this case, the p-value is around 0.5 and reflects the results of the graph.
+
+The graph on the right shows the distribution of the residuals of the response variable depending on the different explanatory variables (linear model). In this case too, the distribution seems normally distributed. The result of the Shapiro-Wilk test completes this conclusion: the value of the statistic is `r shapiro.test(residuals(lm(bwt ~ ht*smoke*lwt*ptd*age, dataframe)))$statistic` and the p-value for the test is `r shapiro.test(residuals(lm(bwt ~ ht*smoke*lwt*ptd*age, dataframe)))$p.value`. In this case, the p-value is smaller but close to alpha=0.05. An explanation of this result would be the tails of the distribution, which go far from the theoretical line. Another explanation would be the population sizes of the variables which are not equal. 
+
+The normality and the homoscedasciticy of the residuals allow us to perform the ANCOVA test on the linear model. For more informations about the data structure, see __Annexe 1__.
+
+
+The linear model used to test the homogeneity of the residuals is performed assuming interactions between all explanatory variables. Here are the results of the ANCOVA test with and without interactions.
+
+\newpage
+```{r data analysis, include=TRUE}
+# with interaction between explanatory variables
+anova(lm(bwt ~ lwt*age*smoke*ht*ptd, dataframe)) 
+# without the non-significant variable (age)
+anova(lm(bwt ~ lwt*ht*smoke*ptd, dataframe))
+# without interaction between explanatory variables
+anova(lm(bwt ~ lwt+ht+smoke+ptd, dataframe)) 
+
+```
+
+\newpage
+The first table shows significative interactions between the weight of the newborn with: a) the hypertension status, b) the smoking status, c) the weight of the mother before pregnancy, d) the preterm child status. Moreover, interactions between e) the hypertension status and the age and f) the smoking status, the weight of the mother before pregnancy and preterm child status also influence the weight of the newborn. 
+
+
+When looking at the distribution of the newborn weight for each variable (see next page), some results are surprising. 
+
+- Newborn weigth VS Age of the mother:
+The scatterplot doesn't show a particular structure of the data, which is good.  
+
+- Newborn weight VS Mother's weight before pregnancy:
+The scatterplot doesn't show a particular structure of the data, which is good.
+
+- Newborn weight VS Smoking habits:
+These boxplots show that mothers who smoke have heavier baby. This result is surprising because several studies suggest that smoking mothers tend more to have lighter babies than non-smokers ones. (Tyrrell J. et al. Genetic variation in the 15q25 nicotinic acetylcholine receptor gene cluster (CHRNA5-CHRNA3-CHRNB4) interacts with maternal self reported smoking status during pregnancy to influence birth weigth. Human molecular Genetics, 2012. 1-15. Meyer MB. How does maternal smoking affect birth weight and maternal weight gain? Evidence from the Ontario Perinatal Mortality Study. AM J Obstet Gynecol. 1978. 131:888-893.)
+
+- Newborn weigth VS Known hypertenstion:
+These boxplots show that mothers who suffer of hypertension have heavier baby. This result is surprising because another study (at least) concludes that mothers who suffer of hypertension increase the risk to give birth of lighter babies. (Wikstrom AK. et al. Prehypertension in late pregnancy linked with underweight newborns, stillbirths. American Heart Association Rapid Access Journal Report. 2016.)
+
+- Newborn weight VS Preterm birth:
+These boxplots show that babies born before term are heavier than others. This result is intuitively surprising because a preterm baby is rather lighter than a baby born at term. The preterm baby got less time to develop and grow in the mother's womb. As a result, preterm babies are smaller and lighter. 
+
+
+```{r plots_generation, echo=FALSE, fig.height=15, fig.width=10}
+
+library(ggplot2)
+library(gridExtra)
+
+
+names_df <- c(age = "Age of the mother [year]", lwt = "Mother's weight before pregnancy [kg]", smoke = "Smoking habits", ht = "Known hypertension", bwt = "Newborn weight [kg]", ptd = "Preterm birth") # variables' name and units
+
+
+
+plots_df <- function(df){
+  plotslist <- list()
+  count <- 1
+  for (c in colnames(df)){
+    if (c!= "bwt"){
+      if(is.numeric(df[1,c])){
+        plotslist[[count]] <- ggplot(data=df) +
+          geom_point(aes_string(x = df[,c], y = df$bwt)) +
+          theme_bw() + xlab(names_df[c]) + ylab("Newborn weight") +
+          ggtitle(paste("Newborn weight [kg] VS", names_df[c])) +
+          theme(plot.title = element_text(size = 12, face = "bold"))
+    }else{
+      plotslist[[count]] <- ggplot(data=df) +
+        geom_boxplot(aes_string(x = df[,c], y = df$bwt)) +
+        theme_bw() + xlab(names_df[c]) + ylab("Newborn weight") +
+        ggtitle(paste("Newborn weight [kg] VS", names_df[c])) +
+        theme(plot.title = element_text(size = 12, face = "bold"))
+     }
+    count <- count + 1
+    }
+  }
+  return(plotslist)
+}
+
+#plots_df(dataframe)
+
+
+grid.arrange(grobs=plots_df(dataframe), ncol = 2)
+
+```
+
+
+# 4. Discussion and Conclusion
+
+Despite the fact that the study is strongly biased, we can conclude that all characteristics of the mother (except her age, _p-value = 0.193_) influence the birth weight. Indeed, the weight of the mother before pregnancy (_p-value = 0.0130_), her smoking status (_p-value = 0.00999_) and her hypertension status (_p-value = 0.00677_) show significant influence on the birth weight. Moreover, we can conclude that the term status of the baby (_p-value = 0.0150_) influence her/his birth weight. In more details, we can conclude with a lot of caution that a low mother's weight before pregnancy, a non-hypertension mother's status, a non-smoking mother's status and a child birth at term influence the birth weight. As the dataset is really biased, it is hard to conclude that the interactions between the hypertension status of the mother and her age influence the birth weight. It is also hard to conclude that the interactions between the smoking status, the weight of the mother before pregnancy and the term status of the child influence the birth weight. To investigate this question properly, an appropriate dataset is needed with equal group sizes. Some additional informations can be added to the dataset as the number of days before the planned birth term if preterm child.
+
+
+\newpage
+# 5. Annexes
+
+
+__Annexe 1__: Data structure of the model 
+```{r annexe 1 - data structure, echo=FALSE, fig.width=8, fig.height=8, fig.align="center", warning=FALSE}
+
+par(mfrow=c(2,2))
+plot(lm(bwt ~ ht*smoke*lwt*ptd*age, dataframe))
+
+```
+Figure 1 "Residuals vs Fitted", Figure 2 "Normal Q-Q plot, Figure 3 "Scale-Location" and Figure 4 "Residuals vs Leverage"
+
+The figure 1 shows the structure of the data. The figure 2 shows the distribution of the data. The figure 3 shows the homoscedasticity of the residuals of the linear model. The figure 4 shows possible outliers and values which can have a bigger weight compared to others. From all of these informations, we can conclude that the data is normally distributed and the residuals are homogeneous.
+
+
+

@@ -6,7 +6,8 @@ output: pdf_document
 ---
 
 ```{r setup, echo=F}
-setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
+#setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
+setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/reports/birth_weight/")
 birth_weight<-read.table("birtweigth_study.txt", sep= " ") # data is separated by spaces (even though the format was originally csv)
 row.names(birth_weight) <- NULL  # Resetting row names
 birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg
@@ -39,7 +40,7 @@ The dataset does not represent well the reality as the sizes of the different gr
 #Results:
 
 ```{r model, echo=F}
-mdl <- summary(lm(bwt ~ ht+smoke+lwt+ptd+age,data=birth_weight))
+mdl <- summary(lm(bwt ~ ht+smoke+lwt+ptd,data=birth_weight))
 ```
 
 According to our results, the birth weight is affected by the variables in the following ways:
@@ -48,7 +49,7 @@ According to our results, the birth weight is affected by the variables in the f
   * Smoking positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][3]), 3)`)
   * The weight of the mother before pregnancy positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][4]), 3)`)
   * Preterm delivery positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][5]), 3)`)
-  * The age of the mother has no effect on birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][6]), 3)`)
+  * The age of the mother has no effect on birth weight.
   
 #Conclusions:
 

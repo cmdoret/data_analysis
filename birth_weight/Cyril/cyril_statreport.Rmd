@@ -8,7 +8,8 @@ linkcolor: "blue"
 
 ```{r setup, include=F}
 library(ggplot2);library(gridExtra)
-setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
+#setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
+setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/reports/birth_weight/")
 birth_weight<-read.table("birtweigth_study.txt", sep= " ") # data is separated by spaces (even though the format was originally csv)
 row.names(birth_weight) <- NULL  # Resetting row names
 birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg
@@ -78,24 +79,40 @@ From the qqplot (Figure 3), the residuals of the model do not seem to deviate to
 A linear model should be a reasonable approach. Interactions will not be accounted for in the model as it is complex to infer a biological meaning to interactions between multiple variables.
 
 ```{r linear_model, echo=T}
-summary(lm(bwt ~ ht+smoke+lwt+ptd+age,data=birth_weight))
+
+summary(lm(bwt ~ lwt+age+ht+smoke+ptd,data=birth_weight))
 
 ```
 
+Since the age is not significant, we can just remove it from the model.
+
+```{r new_model, echo=T}
+
+summary(lm(bwt ~lwt+ht+smoke+ptd,data=birth_weight))
+
+```
+
+Removing the age increased the adjusted R squared. This indicates that the age factor improved the predictory power of our model less than what would be expected by chance.
 
 According to the model, Hypertension status, smoking habit, mother's weight and preterm delivery status will all have an effect on the birth weight, whereas the age of the mother will not.
 
 #Conclusion:
 
+```{r new_modelsum, echo=F}
+mdl <- summary(lm(bwt ~lwt+ht+smoke+ptd,data=birth_weight))
+```
+
 According to the model, the factors associated with a low birth weight are:
 
-  * Non-smoking mother
-  * Non-hypertensive mother
-  * Full term delivery
+  * Non-smoking mother (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][4]), 3)`)
+  * Non-hypertensive mother (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][3]), 3)`)
+  * Full term delivery (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][5]), 3)`)
+  * Low mother weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][2]), 3)`)
   
 All of these results are counterintuitive and should be interpreted carefully. The data may have suffered manipulation errors, as mentioned previously, or the surprising results may also be caused by the small sample size in some groups.
 
 #Figures:
+
 
 ```{r dataviz,echo=F, fig.height= 8, fig.width=8, fig.cap="Visualization of the different variables against birth weight"}
 grid.arrange(grobs=birth_plotter(birth_weight),ncol=2)  # Something is wrong, premature babies are heavier...
@@ -108,6 +125,6 @@ hist(birth_weight$bwt, breaks=30, main="Distribution of birth weight", xlab="Bir
 ```{r data_check, echo=F, warning=F, fig.height=8, fig.width=8, fig.cap="Quality check of the linear model"}
 
 par(mfrow=c(2,2))
-plot(lm(bwt ~ ht+smoke+lwt+ptd+age,birth_weight))
+plot(lm(bwt ~lwt+ht+smoke+ptd,data=birth_weight))
 
 ```

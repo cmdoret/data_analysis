@@ -7,7 +7,7 @@ output: pdf_document
 
 ```{r setup, echo=F}
 #setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
-setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/reports/birth_weight/")
+setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
 birth_weight<-read.table("birtweigth_study.txt", sep= " ") # data is separated by spaces (even though the format was originally csv)
 row.names(birth_weight) <- NULL  # Resetting row names
 birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg
@@ -17,7 +17,7 @@ nice_varnames <- c(age = "age [years]", lwt="weight of mother [kg]", bwt="birth 
 
 #Introduction:
 
-The aim of the study is to identify factors associated with low birth weight.
+The aim of the study is to identify factors associated with a low birth weight.
 
 #Description of the data:
 
@@ -45,10 +45,10 @@ mdl <- summary(lm(bwt ~ ht+smoke+lwt+ptd,data=birth_weight))
 
 According to our results, the birth weight is affected by the variables in the following ways:
 
-  * Hypertension positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][2]), 3)`)
-  * Smoking positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][3]), 3)`)
   * The weight of the mother before pregnancy positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][4]), 3)`)
+  * Hypertension positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][2]), 3)`)
   * Preterm delivery positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][5]), 3)`)
+  * Smoking positively affects birth weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][3]), 3)`)
   * The age of the mother has no effect on birth weight.
   
 #Conclusions:

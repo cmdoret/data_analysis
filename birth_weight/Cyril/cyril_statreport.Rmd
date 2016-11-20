@@ -9,7 +9,7 @@ linkcolor: "blue"
 ```{r setup, include=F}
 library(ggplot2);library(gridExtra)
 #setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
-setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/reports/birth_weight/")
+setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
 birth_weight<-read.table("birtweigth_study.txt", sep= " ") # data is separated by spaces (even though the format was originally csv)
 row.names(birth_weight) <- NULL  # Resetting row names
 birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg
@@ -104,17 +104,17 @@ mdl <- summary(lm(bwt ~lwt+ht+smoke+ptd,data=birth_weight))
 
 According to the model, the factors associated with a low birth weight are:
 
-  * Non-smoking mother (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][4]), 3)`)
+  * Low mother weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][2]), 3)`)
   * Non-hypertensive mother (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][3]), 3)`)
   * Full term delivery (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][5]), 3)`)
-  * Low mother weight (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][2]), 3)`)
+  * Non-smoking mother (_p-value_ = `r round(as.numeric(mdl$coefficients[,4][4]), 3)`)
   
 All of these results are counterintuitive and should be interpreted carefully. The data may have suffered manipulation errors, as mentioned previously, or the surprising results may also be caused by the small sample size in some groups.
 
 #Figures:
 
 
-```{r dataviz,echo=F, fig.height= 8, fig.width=8, fig.cap="Visualization of the different variables against birth weight"}
+```{r dataviz,echo=F, fig.height= 8, fig.width=8, results='asis', fig.cap="Visualization of the different variables against birth weight"}
 grid.arrange(grobs=birth_plotter(birth_weight),ncol=2)  # Something is wrong, premature babies are heavier...
 ```
 

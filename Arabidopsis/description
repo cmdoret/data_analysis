@@ -1,0 +1,18 @@
+Assignment: "fertility of Arabidopsis
+The dataset "Aribidopsis" (available in file arabidopsis.csv) was collected to study the fertility of Arabidopsis thaliana according to certain variables. The experiment involved two variables of particular interest: the first one is a fertilization treatment, and the second one involves simulated herbivory (plants were "clipped" to mimic the effect of an herbivore eating part of the plant).
+
+ The detail of the variables is as follows:
+
+    ‘reg’ region: a factor indicating where the plant comes from (‘NL’ (Netherlands), ‘SP’ (Spain), or ‘SW’ (Sweden))
+    ‘popu’ population: a factor with the form ‘n.R’ representing a population in region ‘R’
+    ‘gen’ genotype: a factor with 24 (numeric-valued) levels
+    ‘rack’ a nuisance factor with 2 levels, one for each of two greenhouse racks
+    ‘nutrient’ fertilization treatment/nutrient level (1, minimal nutrients or 8, added nutrients)
+    ‘amd’ simulated herbivory or "clipping" (apical meristem damage): ‘unclipped’ (baseline) or ‘clipped’
+    ‘status’ a nuisance factor for germination method (‘Normal’, ‘Petri.Plate’, or ‘Transplant’)
+    ‘total.fruits’ total fruit set per plant (integer) is our measure of fertility (response variable)
+
+Write a report describing the data, and identifying the factors that influence the fertility.
+
+Your report should be targetted at a biologist who has an idea about statistics: he/she will understand the models you are going to use and wants to know about them, but does not need all the details (these should be provided in an appendix)
+Last modified: Tuesday, 22 November 2016, 7:03 AM 

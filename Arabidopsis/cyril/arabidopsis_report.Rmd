@@ -7,6 +7,7 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F)
+library(knitr);library(pander)
 library(MASS);library(ggplot2);library(lme4);library(car)
 ara <- read.csv(file = "../arabidopsis.csv")
 ara$gen <- as.factor(ara$gen)
@@ -40,13 +41,80 @@ The variable of interest being the number of fruit, the data is not normally dis
 
 Some factors (`rack`, `nutrient` and `gen`) were encoded in numbers. Their type needs to be set to `Factor` in order to prevent functions from treating them as integer variables in downstream analyses. Groups are also unbalanced for certain factors. For example, there are 11 plants of genotype 5 and 47 of genotype 35.
 
+From the repartition of levels, it appears that `popu` is nested within `reg`, as each population is confined to a single region __(Table 1)__ and `gen` is nested within `popu` __(Table 2)__.
+
 #Analyses
 
-As the response is not normally distributed and the design is unbalanced, it is not optimal to use regular methods such as ANOVAs. Also, the population predictor appears to be nested inside region.
+As the response is not normally distributed and the design is unbalanced, it is not optimal to use regular methods such as ANOVAs.
+I chose to use a generalized linear mixed model, fitting the data to a Poisson distribution, as it is not possible to use zero values with the gamma distribution and zeros make up a significant proportion of the observations. The model is as follows:
+
+```{r model1, echo=T}
+mdl1 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|reg/popu/gen)+(1|rack),
+              family= poisson)
+```
+
+Perhaps a more simple model could be more appropriate, as complex model tend to generate noise. This can be tested by iterative process, removing random factors from the model and looking at the effect of the AIC value, a relative measure of loss of information. The lower AIC, the better the model.
+
+```{r testmod, echo=T}
+mdl2 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|reg/popu/gen),
+              family= poisson)  # rack removed
+mdl3 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|reg/popu/gen)+(1|rack),
+              family= poisson)  # status removed
+mdl4 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|reg/popu)+(1|rack),
+              family= poisson)  # gen removed
+mdl5 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|popu/gen)+(1|rack),
+              family= poisson)  # reg removed
+mdl6 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|reg/gen)+(1|rack),
+              family= poisson)  # popu removed
+```
+
+
+Among all these models, `mdl5` has the lowest AIC (17523.93), indicating the model is improved when removing the region factor.
+
+```{r AIC_comp}
+
+AIC.table <- AIC(mdl1,mdl2,mdl3,mdl4,mdl5,mdl6)
+AIC.table$dropped <- c("None","rack","status","gen","reg","popu")
+AIC.table <- AIC.table[,c(3,1,2)]
+print(AIC.table)
+
+```
+
+We can try removing another factor from model 5: 
+
+```{r testmod2, echo=T}
+mdl5.1 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|popu/gen)+(1|rack),
+              family= poisson)  # reg  and status removed
+mdl5.2 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|gen)+(1|rack),
+              family= poisson)  # reg  and popu removed
+mdl5.3 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|popu)+(1|rack),
+              family= poisson)  # reg and gen removed
+mdl5.4 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|popu/gen),
+              family= poisson)  # reg and rack removed
+
+
+```
+
+```{r AIC_comp2}
+
+AIC.table <- AIC(mdl5.1,mdl5.2,mdl5.3,mdl5.4)
+AIC.table$dropped <- c("status","popu","gen","rack")
+AIC.table <- AIC.table[,c(3,1,2)]
+print(AIC.table)
+
+```
+
+Removing any additional factor increases the AIC, therefore we cannot improve the model by further removing random factors.
+
+#Results:
+
+```{r output_mod5, echo=T}
+summary(mdl5)
+```
+
+According to the model selected, adding nutrients has a positive effect on fertility (p = 2e-16), whereas clipping plants has a negative effect on fertility (p = 2e-16). Looking at estimates reveals that the positive effect of nutrients is `r round(1.37329/0.42453,2)` times stronger than the negative effect of clipping the plant. The interaction between added nutrients and unclipped is negative (p = 2e-16), meaning that adding nutrients to unclipped plants increases fertility less than when added to clipped plants. 
 
 #Appendices
-
-##Figures
 
 ```{r figure1, fig.cap="Distribution of the response variable, 'total fruits'"}
 boxplot(ara$total.fruits)
@@ -64,5 +132,23 @@ qqp(ara$total.fruits+1,main="Gamma","gamma",shape=gamma$estimate[[1]],rate=gamma
 
 ```
 
-```{r figure3, fig.cap=""}
+```{r table1}
+library(pander)
+panderOptions('table.split.table', Inf)
+set.caption('Population groups repartition through across regions')
+pander(xtabs(~-ara$reg+ara$popu))
+
+#kable(xtabs(~-ara$reg+ara$popu))
 ```
+
+```{r table2}
+library(pander)
+panderOptions('table.split.table', Inf)
+set.caption('Genotypes repartition across populations')
+pander(xtabs(~-ara$reg+ara$popu))
+
+#kable(xtabs(~-ara$reg+ara$popu))
+```
+
+
+

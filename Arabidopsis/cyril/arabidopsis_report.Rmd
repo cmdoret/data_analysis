@@ -1,0 +1,68 @@
+---
+title: "Fertility of Arabidopsis thaliana"
+author: "Cyril Matthey-Doret"
+date: "26 novembre 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+library(MASS);library(ggplot2);library(lme4);library(car)
+ara <- read.csv(file = "../arabidopsis.csv")
+ara$gen <- as.factor(ara$gen)
+ara$rack <- as.factor(ara$rack)
+ara$nutrient <- as.factor(ara$nutrient)
+
+```
+
+#Introduction
+
+Here, I analyse a dataset on Arabidopsis fertility containing different factors. The aim is to measure the effect of those factors on the fertility.
+
+#Data
+
+The variables studied are:
+
+  * __reg__ (factor): Region where the plant has been collected. There are 3 regions (`NL`: Netherlands, `SP`: Spain, `SW`: Sweden).
+  * __popu__ (factor): Populations of origin of the plant inside each region. There are 9 levels.
+  * __gen__ (factor): The plant's genotype. There are 24 different genotypes in total.
+  * __rack__ (factor): The rack the plant was stored on, inside the greenhouse. There are 2 racks.
+  * __nutrient__ (factor): Nutrition treatment. 2 levels (`1`: minimal nutrients, `8`: additional nutrients)
+  * __amd__ (factor): Status of simulated herbivory. 2 levels (`clipped`: positive, `unclipped`: negative)
+  * __status__ (factor): Germination method. 3 levels (`Normal`, `Petri.Plate`, `Transplant`)
+  * __total.fruits__ (integer): Number of fuits per plant. This is the response variable, we use it to measure fertility.
+  
+All predictors are factors. Among predictors, `status` and `amd` are considered to be interesting, while `rack` and `status` are described as "nuisance factors".
+
+The dataset contains 625 individual plants. 
+
+The variable of interest being the number of fruit, the data is not normally distributed __(Figure 1)__. Indeed, a quick look at the data indicate that the values are discrete and contain `r length(ara$total.fruits[ara$total.fruits==0])` zeros, out of the `r length(ara$total.fruits)` observations. The Gamma distribution seems to well the data __(Figure 2)__. 
+
+Some factors (`rack`, `nutrient` and `gen`) were encoded in numbers. Their type needs to be set to `Factor` in order to prevent functions from treating them as integer variables in downstream analyses. Groups are also unbalanced for certain factors. For example, there are 11 plants of genotype 5 and 47 of genotype 35.
+
+#Analyses
+
+As the response is not normally distributed and the design is unbalanced, it is not optimal to use regular methods such as ANOVAs. Also, the population predictor appears to be nested inside region.
+
+#Appendices
+
+##Figures
+
+```{r figure1, fig.cap="Distribution of the response variable, 'total fruits'"}
+boxplot(ara$total.fruits)
+```
+
+```{r figure2,fig.cap="Fit of total fruit count to different distribution.",echo=F, fig.height=8}
+
+par(mfrow=c(2,2))
+qqp(main="Normal",ara$total.fruits,"norm")
+poisson <- fitdistr(ara$total.fruits, "Poisson")
+qqp(main="Poisson",ara$total.fruits, "pois", poisson$estimate)
+qqp(main="Lognormal", ara$total.fruits,"lnorm")
+gamma <- fitdistr(x = ara$total.fruits+1,"gamma")
+qqp(ara$total.fruits+1,main="Gamma","gamma",shape=gamma$estimate[[1]],rate=gamma$estimate[[2]])
+
+```
+
+```{r figure3, fig.cap=""}
+```

@@ -46,7 +46,7 @@ From the repartition of levels, it appears that `popu` is nested within `reg`, a
 #Analyses
 
 As the response is not normally distributed and the design is unbalanced, it is not optimal to use regular methods such as ANOVAs.
-I chose to use a generalized linear mixed model, fitting the data to a Poisson distribution, as it is not possible to use zero values with the gamma distribution and zeros make up a significant proportion of the observations. The model is as follows:
+I chose to use a generalized linear mixed model, fitting the data to a Poisson distribution, as the response variable is discrete and all values are positive. Gamma would be a better fit, but it is not possible to use zero values with it and zeros make up a significant proportion of the observations. The model is as follows:
 
 ```{r model1, echo=T}
 mdl1 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|reg/popu/gen)+(1|rack),
@@ -112,7 +112,7 @@ Removing any additional factor increases the AIC, therefore we cannot improve th
 summary(mdl5)
 ```
 
-According to the model selected, adding nutrients has a positive effect on fertility (p = 2e-16), whereas clipping plants has a negative effect on fertility (p = 2e-16). Looking at estimates reveals that the positive effect of nutrients is `r round(1.37329/0.42453,2)` times stronger than the negative effect of clipping the plant. The interaction between added nutrients and unclipped is negative (p = 2e-16), meaning that adding nutrients to unclipped plants increases fertility less than when added to clipped plants. 
+According to the model selected, adding nutrients has a positive effect on fertility (p = 2e-16), whereas clipping plants has a negative effect on fertility (p = 2e-16). Looking at estimates reveals that the positive effect of nutrients is `r round(1.37329/0.42453,2)` times stronger than the negative effect of clipping the plant. The interaction between added nutrients and unclipped is negative (p = 2e-16), meaning that clipping fertilized plants decreases less fertility than clipping plants without added nutrients. This explanation is consistent with what we observe when visualising data __(Figure 3)__. Although the negative effect of clipping on total fruits is weak compared to the positive effect of added nutrients, it is even weaker on fertilized plants. This would mean fertilized plants are more resistant to herbivory.
 
 #Appendices
 
@@ -132,8 +132,15 @@ qqp(ara$total.fruits+1,main="Gamma","gamma",shape=gamma$estimate[[1]],rate=gamma
 
 ```
 
+```{r figure3, fig.cap="Visualizing interaction between amd and nutrient."}
+ggplot(data=ara,aes(x=amd,y=total.fruits))+
+  facet_grid(~nutrient,labeller = as_labeller(c(`1`= "No added nutrients",`8`= "Added nutrients")))+
+  geom_boxplot()+
+  theme_bw()
+```
+
 ```{r table1}
-library(pander)
+
 panderOptions('table.split.table', Inf)
 set.caption('Population groups repartition through across regions')
 pander(xtabs(~-ara$reg+ara$popu))
@@ -142,7 +149,7 @@ pander(xtabs(~-ara$reg+ara$popu))
 ```
 
 ```{r table2}
-library(pander)
+
 panderOptions('table.split.table', Inf)
 set.caption('Genotypes repartition across populations')
 pander(xtabs(~-ara$reg+ara$popu))

@@ -9,7 +9,7 @@ linkcolor: "blue"
 ```{r setup, include=F}
 library(ggplot2);library(gridExtra)
 #setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
-setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/birth_weight/")
+setwd("/home/cyril/Documents/Master/sem_1/Data_analysis/reports/birth_weight/")
 birth_weight<-read.table("birtweigth_study.txt", sep= " ") # data is separated by spaces (even though the format was originally csv)
 row.names(birth_weight) <- NULL  # Resetting row names
 birth_weight$lwt <- birth_weight$lwt*0.45359237  # Converting from pounds to kg

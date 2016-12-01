@@ -49,22 +49,22 @@ As the response is not normally distributed and the design is unbalanced, it is 
 I chose to use a generalized linear mixed model, fitting the data to a Poisson distribution, as the response variable is discrete and all values are positive. Gamma would be a better fit, but it is not possible to use zero values with it and zeros make up a significant proportion of the observations. The model is as follows:
 
 ```{r model1, echo=T}
-mdl1 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|reg/popu/gen)+(1|rack),
+mdl1 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|reg/popu/gen)+(1|rack),
               family= poisson)
 ```
 
 Perhaps a more simple model could be more appropriate, as complex model tend to generate noise. This can be tested by iterative process, removing random factors from the model and looking at the effect of the AIC value, a relative measure of loss of information. The lower AIC, the better the model.
 
 ```{r testmod, echo=T}
-mdl2 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|reg/popu/gen),
+mdl2 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|reg/popu/gen),
               family= poisson)  # rack removed
-mdl3 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|reg/popu/gen)+(1|rack),
+mdl3 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|reg/popu/gen)+(1|rack),
               family= poisson)  # status removed
-mdl4 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|reg/popu)+(1|rack),
+mdl4 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|reg/popu)+(1|rack),
               family= poisson)  # gen removed
-mdl5 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|popu/gen)+(1|rack),
+mdl5 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|popu/gen)+(1|rack),
               family= poisson)  # reg removed
-mdl6 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|reg/gen)+(1|rack),
+mdl6 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|reg/gen)+(1|rack),
               family= poisson)  # popu removed
 ```
 
@@ -83,13 +83,13 @@ print(AIC.table)
 We can try removing another factor from model 5: 
 
 ```{r testmod2, echo=T}
-mdl5.1 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|popu/gen)+(1|rack),
+mdl5.1 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|popu/gen)+(1|rack),
               family= poisson)  # reg  and status removed
-mdl5.2 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|gen)+(1|rack),
+mdl5.2 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|gen)+(1|rack),
               family= poisson)  # reg  and popu removed
-mdl5.3 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|popu)+(1|rack),
+mdl5.3 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|popu)+(1|rack),
               family= poisson)  # reg and gen removed
-mdl5.4 <- glmer(data = ara,formula = total.fruits+1 ~ nutrient*amd+(1|status)+(1|popu/gen),
+mdl5.4 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|popu/gen),
               family= poisson)  # reg and rack removed
 
 

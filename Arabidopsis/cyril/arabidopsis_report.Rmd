@@ -37,7 +37,7 @@ All predictors are factors. Among predictors, `status` and `amd` are considered 
 
 The dataset contains 625 individual plants. 
 
-The variable of interest being the number of fruit, the data is not normally distributed __(Figure 1)__. Indeed, a quick look at the data indicate that the values are discrete and contain `r length(ara$total.fruits[ara$total.fruits==0])` zeros, out of the `r length(ara$total.fruits)` observations. The Gamma distribution seems to well the data __(Figure 2)__. 
+The variable of interest being the number of fruit, the data is not normally distributed __(Figure 1)__. Indeed, a quick look at the data indicate that the values are discrete and contain `r length(ara$total.fruits[ara$total.fruits==0])` zeros, out of the `r length(ara$total.fruits)` observations. 
 
 Some factors (`rack`, `nutrient` and `gen`) were encoded in numbers. Their type needs to be set to `Factor` in order to prevent functions from treating them as integer variables in downstream analyses. Groups are also unbalanced for certain factors. For example, there are 11 plants of genotype 5 and 47 of genotype 35.
 
@@ -46,12 +46,14 @@ From the repartition of levels, it appears that `popu` is nested within `reg`, a
 #Analyses
 
 As the response is not normally distributed and the design is unbalanced, it is not optimal to use regular methods such as ANOVAs.
-I chose to use a generalized linear mixed model, fitting the data to a Poisson distribution, as the response variable is discrete and all values are positive. Gamma would be a better fit, but it is not possible to use zero values with it and zeros make up a significant proportion of the observations. The model is as follows:
+I chose to use a generalized linear mixed model, fitting the data to a Poisson distribution, as the response variable is discrete and all values are positive or zero. The data does not fit Poisson very well __(Figure 2)__, but it is still the logical choice for a count variables. The model is as follows:
 
 ```{r model1, echo=T}
 mdl1 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|reg/popu/gen)+(1|rack),
               family= poisson)
 ```
+
+As they were stated to be of particular interes, nutrient and amd have been set to fixed factors, while the other "nuisance" variables have been set as random. This choice is rather arbitrary and could have been different if we were interested, for example in the status predictor.
 
 Perhaps a more simple model could be more appropriate, as complex model tend to generate noise. This can be tested by iterative process, removing random factors from the model and looking at the effect of the AIC value, a relative measure of loss of information. The lower AIC, the better the model.
 
@@ -112,7 +114,7 @@ Removing any additional factor increases the AIC, therefore we cannot improve th
 summary(mdl5)
 ```
 
-According to the model selected, adding nutrients has a positive effect on fertility (p = 2e-16), whereas clipping plants has a negative effect on fertility (p = 2e-16). Looking at estimates reveals that the positive effect of nutrients is `r round(1.37329/0.42453,2)` times stronger than the negative effect of clipping the plant. The interaction between added nutrients and unclipped is negative (p = 2e-16), meaning that clipping fertilized plants decreases less fertility than clipping plants without added nutrients. This explanation is consistent with what we observe when visualising data __(Figure 3)__. Although the negative effect of clipping on total fruits is weak compared to the positive effect of added nutrients, it is even weaker on fertilized plants. This would mean fertilized plants are more resistant to herbivory.
+According to the model selected, adding nutrients has a positive effect on fertility (p = 2e-16), whereas clipping plants has a negative effect on fertility (p = 2e-16). Looking at estimates reveals that the positive effect of nutrients is `r round(1.44082/0.45538,2)` times stronger than the negative effect of clipping the plant. The interaction between added nutrients and unclipped is negative (p = 2e-16), meaning that clipping fertilized plants decreases less fertility than clipping plants without added nutrients. This explanation is consistent with what we observe when visualising data __(Figure 3)__. Although the negative effect of clipping on total fruits is weak compared to the positive effect of added nutrients, it is even weaker on fertilized plants. This would mean fertilized plants are more resistant to herbivory.
 
 #Appendices
 
@@ -127,8 +129,6 @@ qqp(main="Normal",ara$total.fruits,"norm")
 poisson <- fitdistr(ara$total.fruits, "Poisson")
 qqp(main="Poisson",ara$total.fruits, "pois", poisson$estimate)
 qqp(main="Lognormal", ara$total.fruits,"lnorm")
-gamma <- fitdistr(x = ara$total.fruits+1,"gamma")
-qqp(ara$total.fruits+1,main="Gamma","gamma",shape=gamma$estimate[[1]],rate=gamma$estimate[[2]])
 
 ```
 

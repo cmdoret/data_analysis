@@ -1,0 +1,445 @@
+---
+title: "A study of fertility of _Arabidopsis thaliana_"
+author: "Virginie Ricci"
+date: "23 novembre 2016"
+output: pdf_document
+linkcolor: "blue"
+---
+
+
+# 1. Goal
+
+The aim of the study is to identify factors influencing the fertility of _Arabidopsis thaliana_. 
+
+# 2. Dataset
+
+```{r setup, include=FALSE}
+
+setwd(dir="/Users/Baboo19/Documents/R/")
+
+dataframe <- read.csv("arabidopsis.csv", sep=",", header=TRUE)
+head(dataframe)
+names(dataframe)
+str(dataframe)
+
+# dataframe$reg already as.factor
+# dataframe$popu already as.factor
+dataframe$gen <- as.factor(dataframe$gen)
+dataframe$rack <- as.factor(dataframe$rack)
+dataframe$nutrient <- as.factor(dataframe$nutrient)
+# dataframe$amd already as.factor
+# dataframe$status already as.factor
+str(dataframe)
+
+
+
+```
+
+In this report, we analyse [arabidopsis.csv](http://moodle2.unil.ch/pluginfile.php/642313/mod_page/content/10/arabidopsis.csv), which is a dataset containing several informations of `r length(dataframe[,1])` _Arabidopsis thaliana_ plants. The source of the dataset is unknown. 
+
+The dataframe contains 8 variables:
+
+- Country where the plant comes from (reg): `r class(dataframe$reg)` (3 levels: NL-Netherland, SP-Spain and SW-Sweden)
+- Population of origin of the corresponding reg (popu): `r class(dataframe$pop)` (9 levels)
+- Genotype of the plant (gen): `r class(dataframe$gen)` (24 levels)
+- Greenhouse racks (rack): `r class(dataframe$rack)` (2 levels: 1-racks n°1, 2-racks n°2)
+- Fertilization treatment (nutrient): `r class(dataframe$nutrient)` (2 levels: 1-minimal nutrients, 8-added nutrients)
+- Simulated herbivory (amd): `r class(dataframe$amd)` (2 levels: clipped-apical meristem damage, unclipped-baseline)
+- Germination method (status): `r class(dataframe$status)` (3 levels: Normal, Petri.Plate or Transplant)
+- Total fruit set per plant (total.fruits): `r class(dataframe$total.fruits)`
+
+
+```{r data summary, include=FALSE}
+
+summary(dataframe)
+
+summary(dataframe$popu) # first line - different factors, second line - number of recurrence 
+
+summary(dataframe$gen) # first line - different factors, second line - number of recurrence
+
+
+
+summary(dataframe$popu[dataframe$reg=="NL"]) # 2 populations in NL
+summary(dataframe$popu[dataframe$reg=="SP"]) # 4 populations in SP
+summary(dataframe$popu[dataframe$reg=="SW"]) # 3 populations in SW
+
+summary(dataframe$gen[dataframe$reg=="NL"]) ### gen nested in reg
+summary(dataframe$gen[dataframe$reg=="SP"]) ### gen nested in reg
+summary(dataframe$gen[dataframe$reg=="SW"]) ### gen nested in reg
+
+summary(dataframe$rack[dataframe$reg=="NL"])
+summary(dataframe$rack[dataframe$reg=="SP"])
+summary(dataframe$rack[dataframe$reg=="SW"])
+
+summary(dataframe$nutrient[dataframe$reg=="NL"])
+summary(dataframe$nutrient[dataframe$reg=="SP"])
+summary(dataframe$nutrient[dataframe$reg=="SW"])
+
+summary(dataframe$amd[dataframe$reg=="NL"])
+summary(dataframe$amd[dataframe$reg=="SP"])
+summary(dataframe$amd[dataframe$reg=="SW"])
+
+summary(dataframe$status[dataframe$reg=="NL"]) ### !! ++ Normal
+summary(dataframe$status[dataframe$reg=="SP"]) ### !! ++ Normal
+summary(dataframe$status[dataframe$reg=="SW"]) ### !! ++ Normal
+
+
+summary(dataframe$rack[dataframe$nutrient=="1"])
+summary(dataframe$rack[dataframe$nutrient=="8"])
+
+summary(dataframe$amd[dataframe$nutrient=="1"])
+summary(dataframe$amd[dataframe$nutrient=="8"])
+
+summary(dataframe$amd[dataframe$rack=="1"])
+summary(dataframe$amd[dataframe$rack=="2"])
+
+
+summary(dataframe$status[dataframe$nutrient=="1"]) ### !! ++ Normal
+summary(dataframe$status[dataframe$nutrient=="8"]) ### !! ++ Normal
+
+summary(dataframe$status[dataframe$rack=="1"]) ### !! ++ Normal
+summary(dataframe$status[dataframe$rack=="2"]) ### !! ++ Normal
+
+summary(dataframe$status[dataframe$amd=="clipped"]) ### !! ++ Normal
+summary(dataframe$status[dataframe$amd=="unclipped"]) ### !! ++ Normal
+
+summary(dataframe$gen[dataframe$status=="Normal"]) ## unbalance gen and status...
+summary(dataframe$gen[dataframe$status=="Petri.Plate"]) ## unbalance gen and status...
+summary(dataframe$gen[dataframe$status=="Transplant"]) ## unbalance gen and status...
+
+
+
+xtabs(~reg+popu, dataframe) # popu nested in reg
+xtabs(~reg+gen, dataframe) # gen nested in reg
+xtabs(~reg+rack, dataframe) # less in NL
+xtabs(~reg+nutrient, dataframe) # less in NL
+xtabs(~reg+amd, dataframe) # less in NL
+xtabs(~reg+status, dataframe) # unbalanced status...
+xtabs(~reg+total.fruits, dataframe)
+
+xtabs(~popu+gen, dataframe) # gen nested in popu, which is nested in reg
+xtabs(~popu+rack, dataframe)
+xtabs(~popu+nutrient, dataframe)
+xtabs(~popu+amd, dataframe)
+xtabs(~popu+status, dataframe) # unbalanced status...
+xtabs(~popu+total.fruits, dataframe)
+
+xtabs(~gen+rack, dataframe)
+xtabs(~gen+nutrient, dataframe) # unbalanced gen...
+xtabs(~gen+amd, dataframe) # unbalanced gen...
+xtabs(~gen+status, dataframe) # unbalanced gen and status...
+xtabs(~gen+total.fruits, dataframe)
+
+xtabs(~rack+nutrient, dataframe)
+xtabs(~rack+amd, dataframe)
+xtabs(~rack+status, dataframe) # unbalanced status...
+xtabs(~rack+total.fruits, dataframe)
+
+xtabs(~nutrient+amd, dataframe)
+xtabs(~nutrient+status, dataframe) # unbalanced status...
+xtabs(~nutrient+total.fruits, dataframe)
+
+xtabs(~amd+status, dataframe) # unbalanced status...
+xtabs(~amd+total.fruits, dataframe)
+
+# popu is nested in reg
+# gen is nested in popu, which is nested in reg
+# less data from NL
+# status : more Normal, than Transplant, than Petri.Plate
+# gen : some genotypes have twice or three times more data
+```
+
+
+
+For this study, it is said that fertilization treatment and simulated herbivory variables are of particular interest. Moreover, greenhouse rackes and germination methods are considered as nuisance factors. 
+
+When looking at the dataset, we observe that there are less data from Netherland (`r length(dataframe$reg[dataframe$reg=="NL"])`) than from Spain (`r length(dataframe$reg[dataframe$reg=="SP"])`) and Sweden (`r length(dataframe$reg[dataframe$reg=="SW"])`). The population of origin is a factor nested in the country of origin. The number of population in each country is not the same. There are 2 populations in Netherland, 4 in Spain and 3 in Sweden. In addition, the genotype is a factor nested in the population of origin, which is in turn nested in the country of origin. Concerning the germination method, there are more "Normal" germinations (`r length(dataframe$status[dataframe$status=="Normal"])`) than transplantations (`r length(dataframe$status[dataframe$status=="Transplant"])`) and germinations on Petri plate (`r length(dataframe$status[dataframe$status=="Petri.Plate"])`).
+As the overall size of the dataset is pretty big, we suppose to have enough observations to get confident results after analysis. 
+
+
+# 3. Method and Results
+
+In this study, there is one response variable which is the total fruit set per _A. thaliana_ plant. The response variable is numeric, meaning that we need to check its distribution. 
+
+There are 7 explanatory variables: a) the country of origin, b) the population of origin within the country, c) the genotype, d) the greenhouse rack, e) the fertilization treatment, f) the simulated herbivory and g) the germination method.
+
+To be sure that every explanatory variables are considered as factors. We convert their variables' class into factor (`as.factor()`). 
+
+```{r as factor, include=FALSE}
+# as.factor() conversion available in the "r setup" code
+```
+
+```{r visualization1 response variable, echo=FALSE, fig.height=9, fig.width=10}
+
+#install.packages("car")
+#install.packages("MASS")
+#install.packages("lme4")
+#install.packages("Matrix")
+library("car"); library("MASS"); library("lme4"); library("Matrix")
+
+par(mfrow=c(2,2))
+boxplot(dataframe$total.fruits, main="Distribution of the total fruit set per plant", ylab="total fruit set", cex.main=0.8, cex.axis=0.7, cex.lab=0.7)
+
+# plot(density(dataframe$total.fruits), col="blue")
+hist(dataframe$total.fruits, prob=TRUE, main="Density of the total fruits", sub="Density in blue", xlab="total fruit set", cex.main=0.8, cex.axis=0.7, cex.lab=0.7, cex.sub=0.6)
+lines(density(dataframe$total.fruits), col="blue")
+
+resp_var <- dataframe$total.fruits
+qqp(resp_var, "norm")
+
+poisson <- fitdistr(resp_var, "Poisson")
+qqp(resp_var, "pois", poisson$estimate)
+```
+
+```{r testing distributions, include=FALSE}
+
+exp <- fitdistr(resp_var, "exponential")
+qqp(resp_var, "exp", exp$estimate)
+
+resp_var <- dataframe$total.fruits + 1 # shifting values - changing 0 to 1
+qqp(resp_var, "norm")
+
+log <- fitdistr(resp_var, "log-normal")
+qqp(resp_var, "lnorm")
+
+gamma <- fitdistr(resp_var, "gamma")
+qqp(resp_var, "gamma", shape=gamma$estimate[[1]], rate=gamma$estimate[[2]])
+
+```
+
+
+The boxplot on top left shows the distribution of the total fruit set per plant. The graph on top right is the density/histogram plot of the response variable (`breaks=10`). As we can see, most of the total number of fruit are under 50. To see the summary of the total fruits' distribution, see __Annexe 1__:
+
+
+The graph on bottom left (Q-Q plot) shows clearly that the distribution of the data is not normal. As a result, the Gaussian family distribution can not fit our data. Moreover, the summary (__Annexe 1__) shows that 0 is the minimal possible value of total fruits. There are `r length(dataframe$total.fruits[dataframe$total.fruits=="0"])/length(dataframe[,1])*100`% of 0 values. If this percentage was lower, we would shift every values +1 in order to remove 0 and assume that the data is distributed like a Gamma distribution. See __Annexe 2__. In view of this, it is inaccurate to do a standard transformation to normalize the data. We consider that the Q-Q plot looks more like a Poisson distribution (bottom right).
+
+\newpage
+The visualization of the distribution of the number of fruits per _A. thaliana_ plant according to each explanatory variable are shown on the next page. 
+
+- Total fruit set VS Country of origin:
+It seems there are a little bit more fruits in Spain than in Netherland and Sweden. 
+
+- Total fruit set VS Population of origin:
+This graph confirms that there are a little bit more fruits in Spain's region (regions 1, 5, 6 and 8). This can be explained by the fact that there are more regions in Spain than in the other countries. 
+
+- Total fruit set VS Genotype:
+The number of fruits varies among the different genotype. 
+
+
+- Total fruit set VS Greenhouse racks:
+It seems there are a little bit less fruits using the greenhouse racks "2".
+
+- Total fruit set VS Fertilization treatment:
+It seems there are more fruits when added nutrients. 
+
+- Total fruit set VS Simulated herbivory:
+Both simulated herbivory show equivalent number of fruits.
+
+- Total fruit set VS Germination method:
+The number of fruits does not seem to vary using different germination methods. 
+
+
+```{r plots_generation, echo=FALSE, fig.height=15, fig.width=10}
+library(ggplot2)
+library(gridExtra)
+
+names_df <- c(reg = "Country of origin", popu = "Population of origin", gen = "Genotype", rack = "Greenhouse racks", nutrient = "Fertilization treatment", amd = "Simulated herbivory", status = "Germination method") # variables' name and units
+
+plots_df <- function(df){
+  plotslist <- list()
+  count <- 1
+  for (c in colnames(df)){
+    if (c!= "total.fruits"){
+      plotslist[[count]] <- ggplot(data=df) +
+        geom_boxplot(aes_string(x = df[,c], y = df$total.fruits)) +
+        theme_bw() + xlab(names_df[c]) + ylab("Total fruit set") +
+        ggtitle(paste("Total fruit set VS", names_df[c])) +
+        theme(plot.title = element_text(size = 12, face = "bold"))
+    }
+    count <- count + 1
+  }
+  return(plotslist) 
+}
+
+
+#plots_df(dataframe)
+
+grid.arrange(grobs=plots_df(dataframe), ncol = 2)
+```
+
+
+
+To analyze our data, the `gmler` command from the `lme4` package in R is used to estimate a generalized linear mixed effects model. This model is appropriate to take into account both fixed and random effects. We set simulated herbivory and ferlization treatment as factors with fixed effects because they are considered of particular interest. By definition, fixed effects influence the mean of the response variable. All other explanatory variables are set as factors with random effects, which influence only the variance of the response variable. The random effects of the genotype, the population of origin and the country of origin are _nested_ in each other. The random effects of both greenhouse racks and germination methods are _crossed_ to the other factors. 
+
+
+Because our data fits better the Poisson probability distribution compared to the Gaussian one, we build a `glmer` model setting `poisson` as family. First, we estimate a `glmer` including every explanatory variables. Then, we try to remove every explanatory variables one after each other in order to simplify the model. The AIC (Akaike information criterion) measures the relative quality of statistical models for a given set of data. It estimates the quantity of informations which is lost for each model. The lowest AIC is our best generalized linear mixed effects model. In this case, the best one is when removing the country of origin. 
+
+Here is the `glmer` including all explanatory variables. 
+```{r glmer model, echo=FALSE}
+
+#install.packages("lme4")
+#library("lme4")
+
+all <- glmer(total.fruits~amd*nutrient+(1|status)+(1|rack)+(1|gen)+(1|popu)+(1|reg), dataframe, family="poisson")
+# all 
+summary(all)
+
+```
+
+
+```{r simplification, include=FALSE}
+
+wo_status <- glmer(total.fruits~amd*nutrient+(1|rack)+(1|gen)+(1|popu)+(1|reg), dataframe, family="poisson")
+# wo_status
+summary(wo_status)
+
+wo_rack <- glmer(total.fruits~amd*nutrient+(1|status)+(1|gen)+(1|popu)+(1|reg), dataframe, family="poisson")
+# wo_rack
+summary(wo_rack)
+
+wo_gen <- glmer(total.fruits~amd*nutrient+(1|status)+(1|rack)+(1|popu)+(1|reg), dataframe, family="poisson")
+# wo_gen
+summary(wo_gen)
+
+wo_popu <- glmer(total.fruits~amd*nutrient+(1|status)+(1|rack)+(1|gen)+(1|reg), dataframe, family="poisson")
+# wo_popu
+summary(wo_popu)
+
+wo_reg <- glmer(total.fruits~amd*nutrient+(1|status)+(1|rack)+(1|gen)+(1|popu), dataframe, family="poisson")
+# wo_reg
+summary(wo_reg)
+
+```
+
+\newpage
+Here is a summary of AIC value for each tested model. 
+```{r statistical test, echo=FALSE}
+AIC(all, wo_status, wo_rack, wo_gen, wo_popu, wo_reg)
+# Akaike information criterion
+# measure of the relatve quality of statistical models for a given set of data
+# estimate the quality of each model - means for model selection
+# relative estimate of the information lost for each model
+# the preferred model is the one with the minimum AIC value
+
+#BIC(all, wo_status, wo_rack, wo_gen, wo_popu, wo_reg)
+# Bayesian information criterion - more strong penalization of the number of parameters
+
+# lower AIC - wo_reg
+
+```
+
+Here is the final model when removing the country of origin. 
+```{r glmer without region, echo=FALSE}
+
+wo_reg <- glmer(total.fruits~amd*nutrient+(1|status)+(1|rack)+(1|gen)+(1|popu), dataframe, family="poisson")
+# wo_reg
+summary(wo_reg)
+
+```
+
+\newpage
+For this model, we can conclude that the fixed effects of the simulated herbivory and the fertilization treatment have a significant effect on the fertilization of _A. thaliana_ (_p-value < 2\*10^-16_ for both explanatory variables). Moreover, the interaction between these two factors influences the fertiliation of _A. thaliana_ (_p-value < 2\*10^-16_). However, I would be cautious with the result about the simulated herbivory factor. When looking to its distribution according to the total fruit set (see figure page 4), its significance is not obvious. The next figure shows the distribution of the total fruit set when minimal nutrient and abundant nutrient are added according to the simulated herbivory method (clipped and unclipped). As we can see, the effect of the simulated herbivory itself is not evident. Concerning the random effects of the genotype, the population of origin, the germination method and the greenhouse racks, conclusions are more difficult to be drawn.
+
+
+
+```{r results, echo=FALSE, fig.width=8}
+ggplot(data=dataframe, aes(x=amd, y=total.fruits)) +
+  facet_grid(~nutrient) +
+  geom_boxplot() +
+  theme_bw() +
+  ggtitle(expression(atop("Total fruit set when minimal nutrient (1) and abundant nutrient (2)", atop("according to the simulated herbivory (amd: clipped and unclipped)"))))
+
+```
+
+# 4. Conclusion
+
+According to the generalized linear mixed effects model, the unclipped simulated herbivory and abundant nutrients supply increase significantly the number of fruits in _A. thaliana_. The effect of abundant nutrients supply seems to influence more the number of fruit set compared to unclipped simulated herbivory. Their interaction seems to decrease the fertility of _A. thaliana_. The other factors have probably an effect on the fertility. 
+
+
+\newpage
+# 5. Annexes
+
+
+__Annexe 1__: Distribution's summary of the total fruit set
+
+```{r summary response variable, echo=FALSE}
+summary(dataframe$total.fruits)
+
+```
+
+__Annexe 2__: Gamma distribution when shifting total fruit set's values +1
+
+```{r gamma distribution, echo=TRUE, fig.width=10}
+
+par(mfrow=c(1,2))
+resp_var <- dataframe$total.fruits + 1 # shifting values +1
+qqp(resp_var, "norm")
+
+gamma <- fitdistr(resp_var, "gamma")
+qqp(resp_var, "gamma", shape=gamma$estimate[[1]], rate=gamma$estimate[[2]])
+
+```
+
+\newpage
+__Annexe3__: Generalized Linear Mixed-Effects Model
+
+
+__Including every factors__
+```{r glmer models A, echo=FALSE}
+
+all <- glmer(total.fruits~amd*nutrient+(1|status)+(1|rack)+(1|gen)+(1|popu)+(1|reg), dataframe, family="poisson")
+# all
+summary(all)
+
+
+```
+\newpage
+__Without genotype__
+```{r glmer models B, echo=FALSE}
+
+wo_status <- glmer(total.fruits~amd*nutrient+(1|rack)+(1|gen)+(1|popu)+(1|reg), dataframe, family="poisson")
+# wo_status
+summary(wo_status)
+
+
+```
+\newpage
+__Without greenhouse rack__
+```{r glmer models C, echo=FALSE}
+
+wo_rack <- glmer(total.fruits~amd*nutrient+(1|status)+(1|gen)+(1|popu)+(1|reg), dataframe, family="poisson")
+# wo_rack
+summary(wo_rack)
+
+
+```
+\newpage
+__Without genotype__
+```{r glmer models D, echo=FALSE}
+
+wo_gen <- glmer(total.fruits~amd*nutrient+(1|status)+(1|rack)+(1|popu)+(1|reg), dataframe, family="poisson")
+# wo_gen
+summary(wo_gen)
+
+
+```
+\newpage
+__Without population of origin__
+```{r glmer models E, echo=FALSE}
+
+wo_popu <- glmer(total.fruits~amd*nutrient+(1|status)+(1|rack)+(1|gen)+(1|reg), dataframe, family="poisson")
+# wo_popu
+summary(wo_popu)
+
+
+```
+\newpage
+__Without country of origin__
+```{r glmer models F, echo=FALSE}
+
+wo_reg <- glmer(total.fruits~amd*nutrient+(1|status)+(1|rack)+(1|gen)+(1|popu), dataframe, family="poisson")
+# wo_reg
+summary(wo_reg)
+
+
+```

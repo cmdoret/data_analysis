@@ -1,0 +1,8 @@
+2. Stroke data
+
+The "stroke" dataset (available in package ISwR) contains details about all cases of stroke in Tartu, Estonia, during the period 1991-1993, with follow-up until 1 January 1996, along with information on several covariables.
+
+Write a report assessing the effect of these covariables on the survival of these patients.
+
+In particular, you may notice that when you assess the affect of the "sex" variable alone, you get a different results that when assessing it in conjunction with the "age" variable. Can you explain the difference ?
+Last modified: Tuesday, 6 December 2016, 8:09 AM

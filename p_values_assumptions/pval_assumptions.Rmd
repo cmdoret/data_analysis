@@ -1,0 +1,27 @@
+---
+title: "Understanding p-values and assumptions behind statistical tests"
+author: "Cyril Matthey-Doret"
+date: "December 8, 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+
+```
+
+```{r simulation}
+set.seed(1); n <- 1000; m <- 5; pvalues <- rep(NA, n)
+
+for (i in 1:n) {
+
+data1 <- rnorm( m ); data2 <- rnorm( m )
+
+
+pvalues[i] <- t.test(data1, data2, var.equal=TRUE)$p.value
+
+}
+
+
+sum(pvalues < 0.05) / length(pvalues)
+```
+

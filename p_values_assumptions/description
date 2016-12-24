@@ -1,0 +1,58 @@
+1. Understanding p-values and the assumptions behind statistical tests
+
+Statistical tests are ubiquitous in life sciences - most papers in the field contain at least one p-value. However, very few researchers actually check if the assumptions behind these tests were met. For example, a given test may require that the data be normally distributed, but the test will be applied without verifying whether this is the case.
+
+Checking these assumptions is not necessarily easy. For example, there is no way to « prove » that a sample of numbers comes from a normal distribution or not. In particular, when the sample size is small (e.g. 5 units), it is difficult to draw any conclusion. But even more importantly, we know that in the « real world », these assumptions never hold : data is never exactly normally distributed, two populations never have exactly the same variance, etc. So it is important to know whether the results provided by these hypothesis tests are valid, depending on the data they are applied to and other possible parameters.
+
+The question we want to answer here is: does it matter ? We will answer it by performing tests on simulated data.
+
+As an example, let us see what happens if we draw two random samples of 5 numbers from a standard normal distribution, and we perform a two-sample t-test over these two samples. In this case, we know by design that the null hypothesis is correct (the mean of the two populations both 0, so they are indeed equal). So any difference we observe is due purely to chance, and the p-values should be uniformly distributed between 0 and 1, as we discussed during the course. If one chooses the « usual » threshold for significance at 5 %, the test should be significant (the p-value should be below 0.05) in 5 % of the cases -- corresponding to false positives (when the test would indicate that the null hypothesis should be rejected).
+
+We can test this empirically by repeating this experiment many times ; the code below does it 10 millions times, and counts the proportion of experiments for which the value returned was below 5 %:
+
+set.seed(1); n <- 10000000; m <- 5; pvalues <- rep(NA, n)
+
+for (i in 1:n) {
+
+data1 <- rnorm( m ); data2 <- rnorm( m )
+
+
+pvalues[i] <- t.test(data1, data2, var.equal=TRUE)$p.value
+
+}
+
+
+sum(pvalues < 0.05) / length(pvalues)
+
+
+After running this code (caution : this can take a while, depending on your computer), we obtain a result of 0.0499, indicating that the number of false positive is indeed close to the value we expect.
+
+In a second experiment, the first sample was replaced by another (unspecified, but non-normal) distribution, and the result obtained was 0.0627, indicating that we are getting slightly more false-positive than expected by chance (6.2 % instead of 5%). This is useful information for any researcher who would need to analyze similar data, as he now knows what to expect from the test.
+
+The goal of this assignment is to assess the sensitivity of one or several hypothesis tests to different violations of their assumptions under different conditions. You should provide a report that provides biologists with indications about when (depending on their data) they can still use the tests, examples that indicate when they should be careful (when the test will not provide the answer that was expected), or recommendations about the interpretation of the p-values. You can also provide general advice on the robustness of some of these tests (do they still continue to work when their assumptions are not met ?)
+
+You are free to select the hypothesis tests you want to look at (two at least), the data you test them with (e.g. if the test requires normally distributed data, what other distribution have you tried), the conditions under which they are applied as well as the parameters that will vary (for example : what happens when the number of samples chosen varies?).
+
+You will be assessed on :
+
+    your choice of tests (2 at least) [make sure that you choose tests for which you can actually simulate data that are compatible with the null hypothesis].
+
+    the assumptions you choose to "break" and evaluate, and how you break them (e.g. using non-normal distributions).
+
+    the parameters and assumptions you choose to evaluate (e.g. number of samples)
+
+    the way you actually conduct the tests, the way you summarize the data graphically, and the results you obtain.
+
+    the presentation of your results
+
+Your report should be done using knitR and should contain :
+
+    a thorough description of the tests you are assessing
+
+    your results, complete with graphics and tables if needed
+
+    your conclusions
+
+    the R code you used (in an appendix if needed)
+
+Last modified: Tuesday, 6 December 2016, 8:09 AM 

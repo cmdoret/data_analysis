@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = F)
 library(knitr);library(pander)
 library(MASS);library(ggplot2);library(lme4);library(car)
-ara <- read.csv(file = "../arabidopsis.csv")
+ara <- read.csv(file = "./arabidopsis.csv")
 ara$gen <- as.factor(ara$gen)
 ara$rack <- as.factor(ara$rack)
 ara$nutrient <- as.factor(ara$nutrient)
@@ -71,7 +71,7 @@ mdl6 <- glmer(data = ara,formula = total.fruits ~ nutrient*amd+(1|status)+(1|reg
 ```
 
 
-Among all these models, `mdl5` has the lowest AIC (17523.93), indicating the model is improved when removing the region factor.
+Among all these models, `mdl5` has the lowest AIC (18290.28), indicating the model is improved when removing the region factor.
 
 ```{r AIC_comp}
 

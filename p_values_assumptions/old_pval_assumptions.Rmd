@@ -5,10 +5,8 @@ date: "December 8, 2016"
 output: pdf_document
 ---
 
-```{r setup, echo=T}
-library(ggplot2); library(gridExtra);library(parallel); library(snow)
-n.cores <- detectCores() # Probing number of cores available
-
+```{r setup, include=FALSE}
+library(ggplot2); library(gridExtra)
 ```
 
 #Introduction
@@ -21,34 +19,35 @@ The two-sample t-test allows to test if the means of two normally distributed sa
 
 To observe the effect of dependence between datasets (or paired data), I generate pairs of datasets with different degrees of correlation using Cholesky decomposition\footnote{Dependency of variable $Y$ on variable $X$ is induced by applying $Y_d = r*X+\sqrt{1-r^2}*Y$ where $r$ is the desired correlation coefficient and $Y_d$ is the dependent $Y$ variable.}. For every simulation, a new pair of datasets is generated and a two-sample t-test is performed. The p-values are stored and the proportion of p-values below 0.05 (false positives) is measured at different correlation coefficients.
 
-```{r pairs_simulation, echo=T, eval=T}
-n <- 100000  # Number of simulations
-dep_sim <- function(r.coef){  
-  # Function performing simulation
-  X <- rnorm(mean=0, 100)  # First dataset (X)
-  Y <- rnorm(mean=0, 100)  # Second dataset (Y)
-  Z <- r.coef*X+sqrt(1-r.coef^2)*Y  # Making Y correlated to X
-  return(c(t.test(X,Z,paired=F)$p.val,t.test(X,Z,paired=T)$p.val))  # Extracting p-values
-}
-rep_sim <- function(r){  
-  # replicates simulation and extracts proportion of p<0.05
-  Rep <- replicate(n,dep_sim(r))  # Replicating simulation n times
-  out <- list()
-  out[["NP"]] <- sum(Rep[1,]<0.05)/length(Rep[1,])  
-  # p<0.05 with two-samples t-test
-  out[["P"]] <- sum(Rep[2,]<0.05)/length(Rep[2,])  
-  # p<0.05 with paired two-samples t-test
-  return(out)
-}
+```{r old_sim_version}
+r.coef <- -1  # Starting correlation coefficient
+n<-10000  # Number of simulations desired for each value of r.coeff
+pvalues_np <- data.frame(rep(NA,n))  # Initializing dataframe for storing p-values of two-sample t-test
+pvalues_p <- data.frame(rep(NA,n))  # Initializing dataframe for storing p-values of paired two-sample t-test
+colnames(pvalues_np)=colnames(pvalues_p) <- "-1"
+c <- 1
+for(r in round(seq(-0.95,1,0.05),2)){pvalues_np[,as.character(r)]<-rep(NA,n)}
+for(r in round(seq(-0.95,1,0.05),2)){pvalues_p[,as.character(r)]<-rep(NA,n)}
 
-tmp <- mclapply(round(seq(-1,1,0.05),2), rep_sim, mc.cores = n.cores, mc.cleanup = TRUE)  
-# parallelizing simulation
-merged <- unlist(tmp)
-prop_p <- unname(merged[names(merged)=="P"])  
-# Proportions of false positives for paired t-test
-prop_np <- unname(merged[names(merged)=="NP"]) 
-# Proportions of false positives for non-paired t-test
-
+while(r.coef<=1){ # Running simulations as long as r.coef is not above 1
+  for(sim in 1:n){
+    X <- rnorm(mean = 0,100)
+    Y <- rnorm(mean=0,100)
+    Z <- r.coef*X+sqrt(1-r.coef^2)*Y
+    pvalues_np[sim,c] <- t.test(X,Z,paired = F)$p.val
+    pvalues_p[sim,c] <- t.test(X,Z,paired = T)$p.val
+  }
+  r.coef <- round(r.coef + 0.05,2)  # Incrementing r.coef by 0.05
+  c <- c+1
+}
+prop_np <- rep(NA,41)
+for(p in 1:length(colnames(pvalues_np))){
+  prop_np[p]<-sum(pvalues_np[,p]<0.05)/length(pvalues_np[,p]) # Storing proportion of false positives for two-sample t-test
+}
+prop_p <- rep(NA,41)
+for(p in 1:length(colnames(pvalues_p))){
+  prop_p[p]<-sum(pvalues_p[,p]<0.05)/length(pvalues_p[,p]) # Storing proportion of false positives for paired two-sample t-test
+}
 ```
 
 When using the two-sample t-test, the proportion of false positive is dependent on the coefficient of correlation (Figure 2A) between the 2 samples. Negative correlation increases the proportion of false positives while positive correlation decreases it. Therefore, if the paired datasets are positively correlated, the test will be biased towards conservative results, whereas if they are negatively correlated, it will be biased in a liberal way. In the simulations I ran here, we can see false positive rates up to `r max(prop_np, na.rm=T)*100`% when samples are negatively correlated, and down to 0% when samples are positively correlated.
@@ -61,27 +60,21 @@ One-way ANOVA is used to compare the means of three or more samples. It tests th
 
 I test this sensitivity by varying the ratio of standard deviations between groups (Figure 3) and observing the impact on the proportion of false positives. At each ratio of variances, I run `r n` simulations and compute the proportion of false positives.
 
-```{r onewayanova }
+```{r old_anova_sim}
 
-simanov <- function(rt){  # Function performing the simulation
-  df_anova <- data.frame(fact=c(rep("A",100),rep("B",100),rep("C",100)),
-                         val=c(rnorm(n=100, mean=0,sd=1),
-                               rnorm(n=100, mean=0,sd=1*rt),
-                               rnorm(n=100, mean=0,sd=1*rt^2)))  
-  # Generating data with 3 groups and a continuous numeric response variable
-    panov <- summary(aov(df_anova$val ~ df_anova$fact))[[1]][1,5]  
-    # Extracting p-values from the summary
-  return(panov)
+my_pval <- data.frame(matrix(ncol = 10, nrow = n))  # Initializing dataframe for p-values at different variance ratio
+colnames(my_pval) <- as.character(seq(1,10))  # For convenience
+for(rt in 1:10){  # Iterating over variance ratio
+  for(sim in 1:n){
+    df_anova <- data.frame(fact=c(rep("A",100),rep("B",100),rep("C",100)),val=c(rnorm(n=100, mean=0,sd=1),rnorm(n=100, mean=0,sd=1*rt),rnorm(n=100, mean=0,sd=1*rt^2)))  # Generating data with 3 groups and a continuous numeric response variable
+    my_pval[sim,rt] <- summary(aov(df_anova$val ~ df_anova$fact))[[1]][1,5]  # Extracting p-values from the summary
+  }
 }
-repanov <- function(rt){  
-  # replicates simulation and extracts proportion of p<0.05
-  Rep <- replicate(n,simanov(rt))  # Replicating simulation n times
-  out <- sum(Rep<0.05)/length(Rep)  # Proportion of false positives
-  return(out)
+propanov <- rep(NA,10)  # Initiating vector for false positive rates
+for(i in 1:10){  
+  propanov[i] <- sum(my_pval[,i]<0.05)/length(my_pval[,i])
 }
-tmp <- mclapply(1:10, repanov, mc.cores = n.cores, mc.cleanup = TRUE)  
-# parallelizing the simulation
-propanov <- unlist(tmp)
+
 ```
 
 Unequal variances between groups increase the false positive rate of the one-way ANOVA to up to `r max(propanov)*100`% in the range of tested values. It appears that this difference of `r (max(propanov)-propanov[1])*100`% is quite weak, considering the standard deviations differed up to a ratio of 100 between groups, which is rather extreme compared to what be expected in most real-world situations. In summary, the one-way ANOVA seems rather robust to violations of variance homogeneity across groups and as long as the difference is not dramatic, the test could still be applied without risking major bias in the results.
@@ -118,7 +111,7 @@ abline(h=0.05, lty=2,lwd=2); abline(h=max(prop_p,na.rm = T), lty=2, col="green",
 my_pval <- data.frame(matrix(ncol = 10, nrow = n))  # Initializing dataframe for p-values at different variance ratio
 colnames(my_pval) <- as.character(seq(1,10))  # For convenience
 v <- list()
-size <- 1000
+size <- 10000
 for(rt in 1:10){  # Iterating over variance ratio
   tmp_df <- data.frame(fact=c(rep("A",size),rep("B",size),rep("C",size)),val=c(rnorm(n=size, mean=0,sd=1),rnorm(n=size, mean=0,sd=1*rt),rnorm(n=size, mean=0,sd=1*rt^2)))  # Generating data with 3 groups and a continuous numeric response variable
  v[[rt]] <- ggplot(tmp_df)+geom_density(aes(x=val,stat="identity",trim=tmp_df$fact,fill=tmp_df$fact), alpha=0.8)+guides(fill=F)+theme_bw()+ylab("")+xlab(paste0("1:",rt,":",rt^2))+ggtitle(paste0("rt=",rt))
@@ -127,7 +120,7 @@ grid.arrange(grobs=v,nrow=4)
 
 ```
 
-```{r anova_var, echo=F, fig.cap="False positive rates (p<0.05) of one-way ANOVA when comparing 3 normally distributed groups of equal means with increasingly different standard deviations. Standard deviations of the three groups are displayed on the X axis. The black horizontal dashed line represents the 0.05 threshold."}
+```{r anova_var, fig.cap="False positive rates (p<0.05) of one-way ANOVA when comparing 3 normally distributed groups of equal means with increasingly different standard deviations. Standard deviations of the three groups are displayed on the X axis. The black horizontal dashed line represents the 0.05 threshold."}
 par(mar=c(7.1,4.1,4.1,2.1))
 barplot(propanov,names=paste0("1\n",seq(1,10),"\n",seq(1,10)^2), cex.lab=0.9, cex.axis = 0.8, cex.names = 0.6, xlab = "Standard deviations of A/B/C", ylab=" Proportion of p<0.05", main="One-way ANOVA sensitivity to unequal variance across groups")
 abline(h=0.05, lty=2, lwd=2)

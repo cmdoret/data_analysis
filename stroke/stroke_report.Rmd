@@ -1,0 +1,14 @@
+---
+title: "Stroke data"
+author: "Cyril Matthey-Doret"
+date: "26 décembre 2016"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(ISwR)
+data()
+```
+
+## Introduction
+

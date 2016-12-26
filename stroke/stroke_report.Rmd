@@ -12,7 +12,7 @@ data()
 
 # Introduction
 
-In this report, I assess the effect of covariables on the survival of some subjects.
+In this report, I assess the effect of covariables on the survival of stroke victims.
 
 # Data
 
@@ -23,17 +23,86 @@ library(ISwR)
 data(stroke)
 ```
 
-This dataset contains 10 variables observed on 829 individuals who were followed after a stroke episode.
+This dataset contains 10 variables observed on 829 individuals who were followed for up to 5 years after a stroke.
 
 The variables in the dataset are:
-  * sex: 
-  * died: 
-  * dstr: 
-  * age: 
-  * dgn: 
-  * coma: 
-  * diab: 
-  * minf: 
-  * han: 
-  * obsmonths:
-  * dead: 
+  
+  * sex: Indicates the gender of the subject. 2-levels factor: `Male`, `Female`.
+  * died: Date at which the subject died. Date in format YYYY-MM-DD.
+  * dstr: Date of the stroke. Date in format YYYY-MM-DD.
+  * age: Age at stroke in years. Discrete numeric values.
+  * dgn: Diagnosis of the patient. 4-levels factor: `INF` (infarction, ischaemic), `ICH` (intracranial haemorrhage), `ID` (unidentified), `SAH` (subarchnoid haemorrhage)
+  * coma: Indicates whether patient was in a coma after the stroke. 2-levels factor: `Yes`, `No`
+  * diab: History of diabetes. 2-levels factor: `Yes`, `No`
+  * minf: History of myocardial infarction. 2-levels factor: `Yes`, `No`
+  * han: History of hypertension. 2-levels factor: `Yes`, `No`
+  * obsmonths: Observation times in months. Set to 0.1 for patients dying on the same day as the stroke. Continuous numeric values.
+  * dead: Whether or not the patient died during the study. Boolean value.
+  
+I am especially interested in the difference observed in the results when assessing the effect of `sex` alone, or in conjunction with `age`.
+
+# Analyses
+
+I use tools built in the `survival` package to analyze this dataset.
+
+```{r surv, echo=T, message=F}
+library(survival)
+stroke.surv.fit <- Surv(stroke$obsmonths, stroke$dead=="TRUE")
+stroke.surv <- survfit(stroke.surv.fit~1)
+```
+
+`Surv` generates a survival object and survfit estimates the survival function using Kaplan-Meier estimate. When plotting the model, we can visualize the proportion of survivors decreasing over time.
+
+```{r visu_surv, echo=F}
+
+plot(stroke.surv, xlab="Months after diagnosis", ylab="Proportion of survivors", main="Survival over time")
+```
+
+Splitting the population by sex allows to visualize the proportion of survival for each sex independently, revealing that males seem to survive strokes better than women.
+```{r surv_sex}
+stroke.surv.bysex <- survfit(stroke.surv.fit~stroke$sex)
+```
+
+```{r visu_sex, echo=F}
+plot(stroke.surv.bysex, xlab="Months after diagnosis", ylab="Proportion of survivors", main="Survival over time by sex", col=c("green", "blue"))
+legend("topright",legend = c("Female","Male"),fill = c("green","blue"))
+```
+
+We can test if this difference between genders is statistically significant using a log-rank test:
+
+```{r surv_diff, echo=T}
+stroke.surv.diff <- survdiff(stroke.surv.fit~stroke$sex)
+stroke.surv.diff
+```
+
+According to the log-rank test, males survive significantly better to strokes than females (p<0.001) in this study.
+
+We can also add the `age` variable to see if age has an effect on survival, and to see if genders still survive differently after correcting for age. In order to assess the influence of a numerical variable (age), we need to use a Cox model of proportional hazards.
+
+```{r cox_sex_age, echo=T}
+stroke.coxph.sex.age <- coxph(stroke.surv.fit~stroke$sex+stroke$age)
+summary(stroke.coxph.sex.age)
+```
+
+In the summary of the Cox model, the `exp(coef)` column shows the estimated hazard ratio. The value for age is above 1 (exp(coef)=1.051), indicating age and risk of death are positively related: each year of age increases the risk of death by 5.1%. This value is statistically significant (p<0.001), therefore we can deduce that age significantly increases risk of death. The value for Male is also above 1 (exp(coef)=1.023), indicating that males have an increased risk of death, now that we corrected for age. However, the associated p-value is not significant (p=0.825),therefore the gender doesn't affect risk of death when age is incorporated in the model.
+
+Looking at the data might explain why the effect of sex disappeared when correcting for age.
+
+```{r age_X_sex}
+boxplot(stroke$age~stroke$sex, main="Age distribution by sex", ylab="Age (Years)", xlab="Sex")
+```
+
+Visualizing the distribution of ages separately for males and females reveals that females tend to be older. Therefore, the lower mortality of males is likely a consequence of their younger age and not of the sex itself. Indeed, when correcting by sex, we show that females of the same age as males do not have a higher risks mortality after a stroke. It is therefore important to know how the predictions of the model may be affected by covariates.
+
+To have an idea of which variables in the dataset predict best the survival rate, we can include all predictors in the Cox model:
+
+```{r full_cox, echo=T}
+stroke.coxph.all <- coxph(stroke.surv.fit~stroke$sex+stroke$age+stroke$dgn+stroke$coma+stroke$diab+stroke$minf+stroke$han)
+summary(stroke.coxph.all)
+```
+
+The full model confirms that age is significantly increasing mortality rate and that sex has no effect. According to this model, the strongest predictor is `coma`, with `exp(coef)=12.57`, indicating that people who have been in coma are much less likely to survive. Other predictors that significantly increase the risk of mortality are `diab` and `minf`, indicating that patients who have a diabetes or myocardial infection history have also a significantly increased risk of death. On the other hand, the `INF` levels of factor `dgn` is a significant predictor with a `exp(coef)<1`, indicating patients diagnosed with infarction have a lower mortality risk.
+
+# Conclusion
+
+In conclusion, it is important to look for covariates among predictors and include them in the model (i.e. sex and age) to avoid drawing erroneous conclusions. Here, the conclusion to draw from the full model are that older patients, those who have a history of diabetes or myocardial infection and those who were in a coma after the stroke have less survival chance, whereas patients diagnosed with ischaemic infarction have higher survival chances.

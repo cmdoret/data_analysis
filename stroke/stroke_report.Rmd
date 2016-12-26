@@ -10,5 +10,30 @@ library(ISwR)
 data()
 ```
 
-## Introduction
+# Introduction
 
+In this report, I assess the effect of covariables on the survival of some subjects.
+
+# Data
+
+I used the 'stroke' dataset, available in the ISwR package.
+
+```{r load_data, echo=T}
+library(ISwR)
+data(stroke)
+```
+
+This dataset contains 10 variables observed on 829 individuals who were followed after a stroke episode.
+
+The variables in the dataset are:
+  * sex: 
+  * died: 
+  * dstr: 
+  * age: 
+  * dgn: 
+  * coma: 
+  * diab: 
+  * minf: 
+  * han: 
+  * obsmonths:
+  * dead: 

@@ -5,7 +5,7 @@ date: "December 8, 2016"
 output: pdf_document
 ---
 
-```{r setup, echo=T}
+```{r setup, echo=T,message=F}
 library(ggplot2); library(gridExtra);library(parallel); library(snow)
 n.cores <- detectCores() # Probing number of cores available
 

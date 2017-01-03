@@ -55,7 +55,7 @@ stroke.surv <- survfit(stroke.surv.fit~1)
 
 ```{r visu_surv, echo=F}
 
-plot(stroke.surv, xlab="Months after diagnosis", ylab="Proportion of survivors", main="Survival over time")
+plot(stroke.surv, xlab="Months after diagnosis", ylab="Proportion of survivors", main="Survival over time",conf.int=T,mark.time=T)
 ```
 
 Splitting the population by sex allows to visualize the proportion of survival for each sex independently, revealing that males seem to survive strokes better than women.
@@ -64,7 +64,7 @@ stroke.surv.bysex <- survfit(stroke.surv.fit~stroke$sex)
 ```
 
 ```{r visu_sex, echo=F}
-plot(stroke.surv.bysex, xlab="Months after diagnosis", ylab="Proportion of survivors", main="Survival over time by sex", col=c("green", "blue"))
+plot(stroke.surv.bysex, xlab="Months after diagnosis", ylab="Proportion of survivors", main="Survival over time by sex", col=c("green", "blue"),,conf.int=T,mark.time=T)
 legend("topright",legend = c("Female","Male"),fill = c("green","blue"))
 ```
 

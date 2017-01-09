@@ -5,12 +5,6 @@ date: "December 8, 2016"
 output: pdf_document
 ---
 
-```{r setup, echo=T,message=F}
-library(ggplot2); library(gridExtra);library(parallel); library(snow)
-n.cores <- detectCores() # Probing number of cores available
-
-```
-
 #Introduction
 
 The goal of this report is to assess the sensitivity of statistical tests to violations of their assumptions.
@@ -21,7 +15,11 @@ The two-sample t-test allows to test if the means of two normally distributed sa
 
 To observe the effect of dependence between datasets (or paired data), I generate pairs of datasets with different degrees of correlation using Cholesky decomposition\footnote{Dependency of variable $Y$ on variable $X$ is induced by applying $Y_d = r*X+\sqrt{1-r^2}*Y$ where $r$ is the desired correlation coefficient and $Y_d$ is the dependent $Y$ variable.}. For every simulation, a new pair of datasets is generated and a two-sample t-test is performed. The p-values are stored and the proportion of p-values below 0.05 (false positives) is measured at different correlation coefficients.
 
-```{r pairs_simulation, echo=T, eval=T}
+```{r pairs_simulation, echo=T, eval=T, message=F}
+
+library(ggplot2); library(gridExtra);library(parallel)
+n.cores <- detectCores() # Probing number of cores available
+
 n <- 100000  # Number of simulations
 dep_sim <- function(r.coef){  
   # Function performing simulation
@@ -88,21 +86,13 @@ Unequal variances between groups increase the false positive rate of the one-way
 
 #Figures:
 
-```{r vizu_pair, echo=F, fig.height=6, fig.cap="Illustration of two simulated datasets X and Y where varying levels of dependence of Y on X are generated. Top: $\\rho$ denotes the correlation coefficient between X and Y. The colour scale allows to visualize displacement of points as the correlation is increased by incrementing $\\rho$ of 0.05. Bottom:  Same datasets, represented only with $\\rho$=0 (blue) and $\\rho$=1 (green)."}
+```{r vizu_pair, echo=F, fig.height=4, fig.cap="Illustration of two simulated datasets X and Y with or without dependence of Y on X. Blue: X and Y are independent with a correlation coefficient of $\\rho$=0. Green: X and Y are highly dependent with $\\rho$=0.95. In both cases, X and Y have equal means and variances."}
 r.coef <- 0  # Starting value of correlation coefficient
 X <- rnorm(mean = 0,100)  # Fixed data-set
 Y <- rnorm(mean=0,100)  # Dependent dataset
-mycol <- heat.colors(25,alpha=0.8)  # Setting up a color scale
-c <- 1  # Iterator used to pick colors
-corplot <- ggplot()+geom_point(aes(x=X,y=Y))+scale_colour_gradient(low=mycol[1],high=mycol[20],limits=c(0,1),guide = "colourbar",name=expression(rho))+ggtitle("Inducing dependence between two datasets")+theme_bw()  # Initializing plot
-while(r.coef<=1){  # Keep going until r = 1
-  Z <- r.coef*X+sqrt(1-r.coef^2)*Y  # Generating dependence between datasets
-  corplot <- corplot + geom_point(aes_string(x=X,y=Z),colour=mycol[c])  # Adding points to the plot with incremented r coeff.
-  r.coef <- r.coef + 0.05  # incrementing r coeff
-  c <- c+1  # incrementing color selector
-}
-extremplot <- ggplot()+geom_point(aes(x=X,y=Y),col=alpha("blue",1),pch=5)+geom_point(aes(x=X,y=Z),col=(alpha("green",1)), pch=5)+theme_bw()  # Second plot to visualize both datasets with minimum and maximal dependence
-grid.arrange(corplot, extremplot, ncol=1) 
+Z <- 0.95*X+sqrt(1-0.95^2)*Y  # Generating dependence between datasets
+
+ggplot()+geom_point(aes(x=X,y=Y),col=alpha("blue",1),pch=5)+geom_point(aes(x=X,y=Z),col=(alpha("green",1)), pch=5)+theme_bw()  # Second plot to visualize both datasets with minimum and maximal dependence
 ```
 
 ```{r effect_dep, echo=F, fig.height=7, fig.cap="Proportion of false positives across 10,000 simulations at different correlation coefficients between datasets. Proportion of p-values below 0.05 (False positives) when comparing two samples with equal means and standard deviations at different degrees of correlation using A. two-sample t-tests and B. paired two-sample t-tests. Green and red dashed horizontal lines represent the maximum and minimum proportions of false positives obtained with the paired two-sample t-test to better appreciate the scale. Black dashed horizontal line represent the 0.05 $\\alpha$ threshold."}
